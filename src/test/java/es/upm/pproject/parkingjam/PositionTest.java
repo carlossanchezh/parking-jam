@@ -53,33 +53,44 @@ public class PositionTest {
     }
 
     @Test
-    @DisplayName("PositionTest_04: should return true when comparing two positions with same coordinates")
+    @DisplayName("PositionTest_04: should return true when comparing the same position")
+    void testEqualsSamePosition() {
+        assertEquals(position, position);
+    }
+
+    @Test
+    @DisplayName("PositionTest_05: should return true when comparing two positions with same coordinates")
     void testEqualsSameCoordinates() {
         assertEquals(position, samePosition);
+        assertEquals(samePosition, position);
 
     }
 
     @Test
-    @DisplayName("PositionTest_05: should return false when comparing two positions with different coordinates")
+    @DisplayName("PositionTest_06: should return false when comparing two positions with different coordinates")
     void testEqualsDifferentCoordinates() {
         assertNotEquals(position, differentPosition);
+        assertNotEquals(differentPosition, position);
     }
 
     @Test
-    @DisplayName("PositionTest_06: should return false when comparing with null or a different type")
+    @DisplayName("PositionTest_07: should return false when comparing with null or a different type")
     void testEqualsEdgeCases() {
         assertNotEquals(null, position);
         assertNotEquals("string", position);
+
+        assertNotEquals(position, null);
+        assertNotEquals(position, "string");
     }
 
     @Test
-    @DisplayName("PositionTest_07: should return the same hash code for positions with equal coordinates")
+    @DisplayName("PositionTest_08: should return the same hash code for positions with equal coordinates")
     void testHashCodeConsistency() {
         assertEquals(position.hashCode(), samePosition.hashCode());
     }
 
     @Test
-    @DisplayName("PositionTest_8: should return different hash code for positions with different coordinates")
+    @DisplayName("PositionTest_09: should return different hash code for positions with different coordinates")
     void testHashCodeDifferent() {
         assertNotEquals(position.hashCode(), differentPosition.hashCode());
     }
