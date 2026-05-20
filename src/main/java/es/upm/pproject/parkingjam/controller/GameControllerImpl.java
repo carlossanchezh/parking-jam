@@ -3,33 +3,13 @@ package es.upm.pproject.parkingjam.controller;
 import es.upm.pproject.parkingjam.model.dto.Direction;
 import es.upm.pproject.parkingjam.model.dto.GameState;
 import es.upm.pproject.parkingjam.model.services.GameService;
-import es.upm.pproject.parkingjam.model.services.GameServiceImpl;
 import es.upm.pproject.parkingjam.view.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
-import java.util.Optional;
-
 import es.upm.pproject.parkingjam.model.dto.Board;
-import es.upm.pproject.parkingjam.model.dto.Position;
 import es.upm.pproject.parkingjam.model.dto.Vehicle;
-import es.upm.pproject.parkingjam.controller.LevelLoader.InvalidLevelException;
-import es.upm.pproject.parkingjam.controller.LevelLoader.LevelData;
 
 
 /**
@@ -47,10 +27,9 @@ public class GameControllerImpl implements GameController {
     // Service where the main logic is located
     private GameService gameService;
     // UI
-    private final MainView view;
+    private final MainView view =  new MainView(); //modify
 
-    //(???)
-    private final LevelLoader levelLoader;
+    //LevelLoader levelLoader ??;
 
     // Initial board, kept for restart
     private Board initialBoard;
@@ -58,15 +37,15 @@ public class GameControllerImpl implements GameController {
 
 
     public GameControllerImpl(MainView view) {
-        this(view, new LevelLoader());
+        //this(view, new LevelLoader());
     }
 
-    /** Package-private constructor that allows injecting a custom loader (useful in tests). */
-    GameControllerImpl(MainView view, LevelLoader levelLoader) {
-        this.view = view;
-        this.levelLoader = levelLoader;
-        //loadLevel(1, 0);
-    }
+//    /** Package-private constructor that allows injecting a custom loader (useful in tests). */
+//    GameControllerImpl(MainView view, LevelLoader levelLoader) {
+//        this.view = view;
+//        this.levelLoader = levelLoader;
+//        //loadLevel(1, 0);
+//    }
 
 
 
