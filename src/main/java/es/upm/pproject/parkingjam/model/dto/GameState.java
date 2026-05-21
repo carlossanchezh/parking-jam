@@ -53,9 +53,15 @@ public class GameState {
     }
 
     public void setCurrentLevelName(String currentLevelName) {
-        if (currentLevelName == null || currentLevelName.isEmpty()) {
-            throw new IllegalArgumentException("Current level name cannot be null   or empty");
+        // Checks level name matches level_1.txt, level_2.txt, etc. format
+        if (!currentLevelName.matches("level_[1-9]\\d*\\.txt")) {
+            throw new IllegalArgumentException("Current level name cannot be null or empty");
         }
+        // Checks level name is not empty or blank
+        if (currentLevelName.isBlank()) {
+            throw new IllegalArgumentException("Current level name cannot be null or empty");
+        }
+        this.currentLevelName = currentLevelName;
     }
 
     public int getLevelScore() {
