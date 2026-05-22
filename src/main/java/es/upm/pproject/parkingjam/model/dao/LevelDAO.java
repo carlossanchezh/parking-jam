@@ -1,38 +1,47 @@
 package es.upm.pproject.parkingjam.model.dao;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import es.upm.pproject.parkingjam.model.dto.Level;
+import es.upm.pproject.parkingjam.model.dto.*;
 import es.upm.pproject.parkingjam.model.exceptions.LevelDAOException;
 import es.upm.pproject.parkingjam.model.exceptions.LevelFormatException;
 
-public class LevelDAO {         //Falta logger y revisar skiplevl
+public class LevelDAO {         
 
-    public List<Level> loadLevels(String filePath) throws LevelDAOException{
-        List<Level> levels = new ArrayList<>();
+    private static final Logger logger = LoggerFactory.getLogger(LevelDAO.class);
 
-        try(BufferedReader br = new BufferedReader(new FileReader(filePath))){
-            String line;
+    public Level loadLevel(String fileName) throws LevelDAOException{
+        Path path = Paths.get("levels", fileName);
+        logger.info("Loading level from file: {}", path);
 
-            while((line = br.readLine()) != null){
-                if(line.trim().isEmpty()) continue;
-                try{
-                    Level level = readLevel(br, line);
-                    levels.add(level);
-                } catch(LevelFormatException e){
-                    System.out.println("Error in level: " + e.getMessage());
-                }
+        try(BufferedReader br = Files.newBufferedReader(path)){
+            String nameLine = br.readLine();
+            if(nameLine == null || nameLine.trim().isEmpty()){
+                throw new LevelFormatException("Missing level name");
             }
+            Level level = readLevel(br, nameLine);
+            logger.info("Level '{}' loaded succesfully", level.getName());
+            return level;
+
+        } catch(LevelFormatException e){
+            logger.info("Level '{}': {}", fileName, e.getMessage());
+            throw new LevelDAOException("Invalid level: " + fileName);
         } catch(IOException e){
-            throw new LevelDAOException();
+            logger.error("Error in reading level'{}'", fileName, e);
+            throw new LevelDAOException("Error in reading level:" + fileName);
         }
-        return levels;
     }
 
     private Level readLevel(BufferedReader br, String nameLine) throws IOException, LevelFormatException{
@@ -44,7 +53,7 @@ public class LevelDAO {         //Falta logger y revisar skiplevl
         if(dimensionLine == null){
             throw new LevelFormatException("Missing dimensions line");
         }
-        String[] dims = dimensionLine.split("\\s+");
+        String[] dims = dimensionLine.trim().split("\\s+");
         if(dims.length != 2){
             throw new LevelFormatException("Invalid dimensions format");
         }
@@ -60,138 +69,117 @@ public class LevelDAO {         //Falta logger y revisar skiplevl
             throw new LevelFormatException("Invalid dimensions");
         }
 
-        char[][] board = new char[nRows][nCols];
+        char[][] rawBoard = new char[nRows][nCols];
         for(int i = 0; i < nRows; i++){
             String row = br.readLine();
             if(row == null){
-                throw new LevelFormatException("Missing board rows");
+                throw new LevelFormatException("Missing board row "+ i);
             }
             if (row.length() != nCols) {
                 throw new LevelFormatException("Row with incorrect size");
             }
-            board[i] = row.toCharArray();
+            rawBoard[i] = row.toCharArray();
         }
-
-        Level level = new Level(name, nRows, nCols, board);
-        validateLevel(level);
-        return level;
+        Board board = buildBoard(rawBoard, nRows, nCols);
+        validateBoard(board);
+        return new Level(name, nRows, nCols, board);
     }
-    
-    //posible separacion de las validaciones y convertir int[] en clase Position
-    private void validateLevel(Level level) throws LevelFormatException{
-        char[][] board = level.getBoard();
-        int nRows = level.getnRows();
-        int nCols = level.getnCols();
 
-        int exitCount = 0;
-        List<int[]> redPositions = new ArrayList<>();
-        Map<Character, List<int[]>> vehicles = new HashMap<>();
+    private Board buildBoard(char[][] rawBoard, int nRows, int nCols) throws LevelFormatException{
+        Set<Position> walls = new HashSet<>();
+        Position exit = null;
+        Map<Character, List<Position>> vehiclesPositions = new HashMap<>();
+        List<Position> redCarPositions = new ArrayList<>();
+
         for(int i = 0; i < nRows; i++){
             for(int j = 0; j < nCols; j++){
-                char c = board[i][j];
-                if(!(c == '+' || c == '.' || c == '@' || c == '*' || (c >= 'a' && c <= 'z'))){
-                    throw new LevelFormatException("Invalid character:" + c);
+                char c = rawBoard[i][j];
+                if(!isValidBoardCharacter(c)) throw new LevelFormatException("Invalid character "+c);
+                Position pos = new Position(i, j);
+
+                if(c == '+') walls.add(pos);
+                else if(c == '@'){
+                    if(exit != null) throw new LevelFormatException("There must be one exit");
+                    exit = pos;
                 }
-                if(c == '@') exitCount++;
-                if(c == '*'){
-                    redPositions.add(new int[]{i,j});
-                }
-                if(c >= 'a' && c <= 'z'){
-                    vehicles.computeIfAbsent(c, k-> new ArrayList<>()).add(new int[]{i,j});
-                }
+                else if(c == '*') redCarPositions.add(pos);
+                else if(c >= 'a' && c <= 'z') vehiclesPositions.computeIfAbsent(c, k -> new ArrayList<>()).add(pos);
             }
         }
-        if(exitCount != 1){
+        Map<Character, Vehicle> vehicles = new HashMap<>();
+        //RED CAR
+        if(!redCarPositions.isEmpty()){
+            vehicles.put('*', new Vehicle('*', redCarPositions, true, determineOrientation(redCarPositions)));
+        }
+
+        //Normal cars
+        for(Map.Entry<Character, List<Position>> entry : vehiclesPositions.entrySet()){
+            char id = entry.getKey();
+            List<Position> positions = entry.getValue();
+            vehicles.put(id, new Vehicle(id, positions, false, determineOrientation(positions)));
+        }
+        return new Board(nRows, nCols, walls, exit, vehicles);
+    }
+    private boolean isValidBoardCharacter(char c){
+        return c == '+' || c == '.' || c == '@' || c == '*' || (c >= 'a' && c <= 'z');
+    }
+    private Orientation determineOrientation(List<Position> positions) throws LevelFormatException{
+        if(positions == null || positions.size() < 2){
+            throw new LevelFormatException("Vehicle must have at least 2 positions");
+        }
+        Position first = positions.get(0);
+        Position second = positions.get(1);
+        if(first.getX() == second.getX()) return Orientation.HORIZONTAL;
+        else if(first.getY() == second.getY()) return Orientation.VERTICAL;
+        else throw new LevelFormatException("Orientation invalid");
+    }
+    
+    private void validateBoard(Board board) throws LevelFormatException{
+        if(board.getExit() == null){
             throw new LevelFormatException("There must be exactly one exit");
         }
-        if(redPositions.size() != 2){
-            throw new LevelFormatException("Red car must occupy exactly two cells");
+        Map<Character, Vehicle> vehicles = board.getVehicles();
+        Vehicle redCar = vehicles.get('*');
+        if(redCar == null){
+            throw new LevelFormatException("There must be one red car");
         }
-        int r1 = redPositions.get(0)[0];
-        int c1 = redPositions.get(0)[1];
-        int r2 = redPositions.get(1)[0];
-        int c2 = redPositions.get(1)[1];
-
-        boolean horizontal = (r1 == r2 && Math.abs(c1-c2) == 1);
-        boolean vertical = (c1 == c2 && Math.abs(r1-r2) == 1);
-        if(!horizontal && !vertical){
-            throw new LevelFormatException("Red car must be 1x2 or 2x1");
+        validateRedCar(redCar);
+        for(Vehicle vehicle : vehicles.values()){
+            validateVehicle(vehicle);
         }
-        for(Map.Entry<Character, List<int[]>> entry : vehicles.entrySet()){
-            char vehicle = entry.getKey();
-            List<int[]> positions = entry.getValue();
-            if(positions.size() < 2){
-                throw new LevelFormatException("Vehicle " + vehicle + " must occupy at least 2 cells");
-            }
-
-            boolean sameRow = true;
-            boolean sameCol = true;
-            int row0 = positions.get(0)[0];
-            int col0 = positions.get(0)[1];
-            for(int i = 1; i < positions.size(); i++){
-                int r = positions.get(i)[0];
-                int c = positions.get(i)[1];
-                if(r != row0){
-                    sameRow = false;
-                }
-                if(c != col0){
-                    sameCol = false;
-                }
-            }
-            if(!sameRow && !sameCol){
-                throw new LevelFormatException("Vehicle " + vehicle +" is not linear");
-            }
-            validateContinuity(positions, vehicle, sameRow);
-        }
-        validateVehiclesConnectivity(board, nRows, nCols);
     }
+    private void validateRedCar(Vehicle redCar) throws LevelFormatException{
+        if(!redCar.isRedCar()) throw new LevelFormatException("Red car vehicle is not marked as red car");
+        if(redCar.getId() != '*') throw new LevelFormatException("Red car must have '*' as id");
 
-    private void validateContinuity(List<int[]> positions, char vehicle, boolean horizontal) throws LevelFormatException{
+        List<Position> positions = redCar.getPositions();
+        if(positions.size() != 2) throw new LevelFormatException("Red car must occupy at least 2 cells");
+        Orientation orientation = redCar.getOrientation();
+        if(orientation == null) throw new LevelFormatException("Red car must have orientation and be 1x2 or 2x1");
+        validateContinuity(positions, redCar.getId(), orientation);
+    }
+    private void validateVehicle(Vehicle vehicle) throws LevelFormatException{
+        if(vehicle == null) throw new LevelFormatException("Vehicle cannot be null");
+        if(vehicle.isRedCar()) return;
+        if(vehicle.getId() < 'a' || vehicle.getId() > 'z') throw new LevelFormatException("Vehicle "+ vehicle.getId() +" wrong identifier");
+        
+        List<Position> positions = vehicle.getPositions();
+        if(positions == null || positions.size() < 2) throw new LevelFormatException("Vehicle "+ vehicle.getId() +" must occupy 2 cells");
+        if(vehicle.getOrientation() == null) throw new LevelFormatException("Vehicle "+ vehicle.getId() +" must have orientation");
+
+        validateContinuity(positions, vehicle.getId(), vehicle.getOrientation());
+    }
+    private void validateContinuity(List<Position> positions, char id, Orientation orientation) throws LevelFormatException{
         List<Integer> values = new ArrayList<>();
-        for(int[] pos : positions){
-            if(horizontal){
-                values.add(pos[1]);
-            }
-            else{
-                values.add(pos[0]);
-            }
+        for(Position position : positions){
+            if(orientation == Orientation.HORIZONTAL) values.add(position.getY());
+            else if(orientation == Orientation.VERTICAL) values.add(position.getX());
+            else throw new LevelFormatException("Vehicle "+ id +" invalid orientation");
         }
         values.sort(Integer::compareTo);
         for(int i = 1; i < values.size(); i++){
-            if(values.get(i) != values.get(i -1) + 1){
-                throw new LevelFormatException("Vehicle "+ vehicle + " has holes");
-            }
+            if(values.get(i) != values.get(i-1)+1) throw new LevelFormatException("Vehicle "+ id +" has holes");
         }
-    }
-
-    private void validateVehiclesConnectivity(char[][] board, int nRows, int nCols) throws LevelFormatException{
-        boolean[][] visited = new boolean[nRows][nCols];
-
-        for(int i = 0; i < nRows; i++){
-            for(int j = 0; j < nCols; j++){
-                char c = board[i][j];
-                if(c == '+' || c == '.' || c == '@' || c == '*'){
-                    continue;
-                }
-                if(!visited[i][j]){
-                    int size = dfs(board, visited, i, j, c);
-                    if(size < 2){
-                        throw new LevelFormatException("Vehicle " + c + " is disconnected");
-                    }
-                }
-            }
-        }
-    }
-
-    private int dfs(char[][] board, boolean[][] visited, int i, int j, char target){
-        if(i < 0 || i >= board.length || j < 0 || j >= board[0].length ||
-            visited[i][j] ||
-            board[i][j] != target){
-            return 0;
-        }
-        visited[i][j] = true;
-        return 1 + dfs(board, visited, i + 1, j, target) + dfs(board, visited, i - 1, j, target)
-                 + dfs(board, visited, i, j + 1, target) + dfs(board, visited, i, j - 1, target);
     }
 
 }

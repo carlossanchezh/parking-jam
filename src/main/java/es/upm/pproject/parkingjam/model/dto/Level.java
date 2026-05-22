@@ -1,12 +1,21 @@
 package es.upm.pproject.parkingjam.model.dto;
 
 public class Level {
-    private String name;
-    private int nRows;
-    private int nCols;
-    private char[][] board;
+    private final String name;
+    private final int nRows;
+    private final int nCols;
+    private Board board;
 
-    public Level(String name, int nRows, int nCols, char[][] board){
+    public Level(String name, int nRows, int nCols, Board board){
+        if(name == null || name.isEmpty()){
+            throw new IllegalArgumentException("Level name cannot be null or empty");
+        }
+        if(nRows <= 0 || nCols <= 0){
+            throw new IllegalArgumentException("Invalid level dimensions");
+        }
+        if(board == null){
+            throw new IllegalArgumentException("Board cannot be null");
+        }
         this.name = name;
         this.nRows = nRows;
         this.nCols = nCols;
@@ -22,7 +31,7 @@ public class Level {
     public int getnCols(){
         return nCols;
     }
-    public char[][] getBoard(){
+    public Board getBoard(){
         return board;
     }
 }

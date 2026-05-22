@@ -15,8 +15,8 @@ public class GameState {
         if (currentLevel <= 0) {
             throw new IllegalArgumentException("Current level cannot be less than 1");
         }
-        if (currentLevelName == null || currentLevelName.isEmpty()) {
-            throw new IllegalArgumentException("Current level name cannot be null  or empty");
+        if (currentLevelName == null || currentLevelName.isBlank()) {
+            throw new IllegalArgumentException("Current level name cannot be null, blank or empty");
         }
         this.board = board;
         this.currentLevel = currentLevel;
@@ -52,10 +52,12 @@ public class GameState {
         return currentLevelName;
     }
 
-    public void setCurrentLevelName(String currentLevelName) {
-        if (currentLevelName == null || currentLevelName.isEmpty()) {
-            throw new IllegalArgumentException("Current level name cannot be null   or empty");
+    public void setCurrentLevelName(String newLevelName) {
+        // Checks level name is not null, empty or blank
+        if (newLevelName == null || newLevelName.isBlank()) {
+            throw new IllegalArgumentException("Current level name cannot be null, empty or blank");
         }
+        this.currentLevelName = newLevelName;
     }
 
     public int getLevelScore() {
