@@ -22,8 +22,9 @@ public class LevelDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(LevelDAO.class);
 
+    // Loads, parses, and validates a level file
     public Level loadLevel(String fileName) throws LevelDAOException{
-        Path path = Paths.get("levels", fileName);
+        Path path = resolveLevelPath(fileName);
         logger.info("Loading level from file: {}", path);
 
         try(BufferedReader br = Files.newBufferedReader(path)){
@@ -44,9 +45,19 @@ public class LevelDAO {
         }
     }
 
+
+    // Helper to get the level files path
+    private Path resolveLevelPath(String fileName) throws LevelDAOException {
+        Path resourcesPath = Paths.get("resources", "levels", fileName);
+        if (Files.exists(resourcesPath)) {
+            return resourcesPath;
+        }
+        throw new LevelDAOException("Level file not found: " + fileName);
+    }
+
+    // Helper that parses a level from a .txt file
     private Level readLevel(BufferedReader br, String nameLine) throws IOException, LevelFormatException{
-        String name = nameLine;
-        if(name.trim().isEmpty()){
+        if(nameLine.trim().isEmpty()){
             throw new LevelFormatException("Level name cannot be empty");
         }
         String dimensionLine = br.readLine();
@@ -82,31 +93,56 @@ public class LevelDAO {
         }
         Board board = buildBoard(rawBoard, nRows, nCols);
         validateBoard(board);
-        return new Level(name, nRows, nCols, board);
+        return new Level(nameLine, nRows, nCols, board);
     }
 
+
+    // Converts the raw character grid into walls, exit, and vehicle objects.
     private Board buildBoard(char[][] rawBoard, int nRows, int nCols) throws LevelFormatException{
         Set<Position> walls = new HashSet<>();
         Position exit = null;
         Map<Character, List<Position>> vehiclesPositions = new HashMap<>();
         List<Position> redCarPositions = new ArrayList<>();
 
+        // Traverse the whole grid
         for(int i = 0; i < nRows; i++){
             for(int j = 0; j < nCols; j++){
                 char c = rawBoard[i][j];
-                if(!isValidBoardCharacter(c)) throw new LevelFormatException("Invalid character "+c);
                 Position pos = new Position(i, j);
-
-                if(c == '+') walls.add(pos);
-                else if(c == '@'){
-                    if(exit != null) throw new LevelFormatException("There must be one exit");
-                    exit = pos;
-                }
-                else if(c == '*') redCarPositions.add(pos);
-                else if(c >= 'a' && c <= 'z') vehiclesPositions.computeIfAbsent(c, k -> new ArrayList<>()).add(pos);
+                exit = processCell(c, pos, walls, exit, redCarPositions, vehiclesPositions); // Call aux function to process the cell
             }
         }
+        Map<Character, Vehicle> vehicles = buildVehicles(vehiclesPositions, redCarPositions);
+        return new Board(nRows, nCols, walls, exit, vehicles);
+    }
+
+    // Process a single cell in the grid and update the Board state and elements
+    private Position processCell(char c, Position pos,
+                                 Set<Position> walls,
+                                 Position exit,
+                                 List<Position> redCarPositions,
+                                 Map<Character, List<Position>> vehiclesPositions) throws LevelFormatException {
+
+        if(!isValidBoardCharacter(c)) throw new LevelFormatException("Invalid character "+c);
+
+        if(c == '+') {
+            walls.add(pos);
+        } else if(c == '@') {
+            if(exit != null) throw new LevelFormatException("There must be one exit");
+            exit = pos;
+        } else if(c == '*') {
+            redCarPositions.add(pos);
+        } else if(c >= 'a' && c <= 'z') {
+            vehiclesPositions.computeIfAbsent(c, k -> new ArrayList<>()).add(pos);
+        }
+        return exit;
+    }
+
+
+    // Maps the positions from each vehicleId to a Vehicle
+    private Map<Character, Vehicle> buildVehicles(Map<Character, List<Position>> vehiclesPositions, List<Position> redCarPositions) throws LevelFormatException {
         Map<Character, Vehicle> vehicles = new HashMap<>();
+
         //RED CAR
         if(!redCarPositions.isEmpty()){
             vehicles.put('*', new Vehicle('*', redCarPositions, true, determineOrientation(redCarPositions)));
@@ -118,11 +154,17 @@ public class LevelDAO {
             List<Position> positions = entry.getValue();
             vehicles.put(id, new Vehicle(id, positions, false, determineOrientation(positions)));
         }
-        return new Board(nRows, nCols, walls, exit, vehicles);
+        return vehicles;
     }
+
+
+    // Helper that checks if a character in a .txt file is a valid character
     private boolean isValidBoardCharacter(char c){
         return c == '+' || c == '.' || c == '@' || c == '*' || (c >= 'a' && c <= 'z');
     }
+
+
+    // Helper that returns the orientation os a vehicle in a board
     private Orientation determineOrientation(List<Position> positions) throws LevelFormatException{
         if(positions == null || positions.size() < 2){
             throw new LevelFormatException("Vehicle must have at least 2 positions");
@@ -133,7 +175,9 @@ public class LevelDAO {
         else if(first.getY() == second.getY()) return Orientation.VERTICAL;
         else throw new LevelFormatException("Orientation invalid");
     }
-    
+
+
+    // Ensures the board contains the mandatory pieces
     private void validateBoard(Board board) throws LevelFormatException{
         if(board.getExit() == null){
             throw new LevelFormatException("There must be exactly one exit");
@@ -148,16 +192,22 @@ public class LevelDAO {
             validateVehicle(vehicle);
         }
     }
+
+
+    // Applies the extra rules for the red car (exact size, id, and continuity)
     private void validateRedCar(Vehicle redCar) throws LevelFormatException{
         if(!redCar.isRedCar()) throw new LevelFormatException("Red car vehicle is not marked as red car");
         if(redCar.getId() != '*') throw new LevelFormatException("Red car must have '*' as id");
 
         List<Position> positions = redCar.getPositions();
-        if(positions.size() != 2) throw new LevelFormatException("Red car must occupy at least 2 cells");
+        if(positions.size() != 2) throw new LevelFormatException("Red car must occupy 2 cells");
         Orientation orientation = redCar.getOrientation();
         if(orientation == null) throw new LevelFormatException("Red car must have orientation and be 1x2 or 2x1");
         validateContinuity(positions, redCar.getId(), orientation);
     }
+
+
+    // Helper that checks all the vehicles (except the red car) are created according the norms
     private void validateVehicle(Vehicle vehicle) throws LevelFormatException{
         if(vehicle == null) throw new LevelFormatException("Vehicle cannot be null");
         if(vehicle.isRedCar()) return;
@@ -169,6 +219,9 @@ public class LevelDAO {
 
         validateContinuity(positions, vehicle.getId(), vehicle.getOrientation());
     }
+
+
+    // Helper that checks positions assigned to the same car are adjacent (no holes in between)
     private void validateContinuity(List<Position> positions, char id, Orientation orientation) throws LevelFormatException{
         List<Integer> values = new ArrayList<>();
         for(Position position : positions){
