@@ -14,21 +14,17 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Panel that renders the board and converts both mouse drag gestures
- * and keyboard arrow keys into controller.move() calls.
- *
- * INTERACTION MODEL:
- *   Mouse: click and drag a vehicle to move it one step in the drag direction.
- *
+ * Panel that renders the board and converts mouse drag gestures into controller.move() calls.
+ * INTERACTION MODEL: click and drag a vehicle to move it one step in the drag direction.
  */
 public class BoardPanel extends JPanel {
 
     private static final int CELL_SIZE = 60;
-    private Board board;
+    private transient Board board;
     // Cache of colors assigned to vehicle ids
     private final Map<Character, Color> vehicleColors = new HashMap<>();
     // Controller instance to call services
-    private GameController controller;
+    private transient GameController controller;
     // Mouse drag state
     private int pressRow;
     private int pressCol;
@@ -60,48 +56,58 @@ public class BoardPanel extends JPanel {
 
             @Override
             public void mousePressed(MouseEvent e) {
-                if (board == null) return;
-
-                // Record cell where press started
-                pressCol = e.getX() / CELL_SIZE;
-                pressRow = e.getY() / CELL_SIZE;
-
-                Position pos = new Position(pressRow, pressCol);
-                if (board.isInBoard(pos)) {
-                    // Determine if a vehicle was pressed and save its id
-                    Optional<Vehicle> v = board.getVehicleAtPosition(pos);
-                    pressedVehicleId = v.map(Vehicle::getId).orElse('\0');
-                    // Select the clicked vehicle for visual feedback
-                    if (isVehicle(pressedVehicleId)) {
-                        selectedVehicleId = pressedVehicleId;
-                        repaint();
-                    }
-                }
+                mousePressedAux(e);
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                // On release, if a drag occurred compute direction and request a move
-                if (controller == null || board == null) return;
-                char id = pressedVehicleId;
-                if (!isVehicle(id)) return;
-
-                int releaseCol = e.getX() / CELL_SIZE;
-                int releaseRow = e.getY() / CELL_SIZE;
-                int dc = releaseCol - pressCol;
-                int dr = releaseRow - pressRow;
-                if (dc == 0 && dr == 0) return;  // no movement
-
-                // Prefer the larger delta to determine primary drag direction
-                Direction dir;
-                if (Math.abs(dc) >= Math.abs(dr)) {
-                    dir = dc > 0 ? Direction.EAST : Direction.WEST;
-                } else {
-                    dir = dr > 0 ? Direction.SOUTH : Direction.NORTH;
-                }
-                controller.move(id, dir);
+                mouseReleasedAux(e);
             }
         });
+    }
+
+    // Handle mouse pressed
+    private void mousePressedAux(MouseEvent e) {
+        if (board == null) return;
+
+        // Record cell where press started
+        pressCol = e.getX() / CELL_SIZE;
+        pressRow = e.getY() / CELL_SIZE;
+
+        Position pos = new Position(pressRow, pressCol);
+        if (board.isInBoard(pos)) {
+            // Determine if a vehicle was pressed and save its id
+            Optional<Vehicle> v = board.getVehicleAtPosition(pos);
+            pressedVehicleId = v.map(Vehicle::getId).orElse('\0');
+            // Select the clicked vehicle for visual feedback
+            if (isVehicle(pressedVehicleId)) {
+                selectedVehicleId = pressedVehicleId;
+                repaint();
+            }
+        }
+    }
+
+    // Handle mouse released
+    private void mouseReleasedAux(MouseEvent e) {
+        // On release, if a drag occurred compute direction and request a move
+        if (controller == null || board == null) return;
+        char id = pressedVehicleId;
+        if (!isVehicle(id)) return;
+
+        int releaseCol = e.getX() / CELL_SIZE;
+        int releaseRow = e.getY() / CELL_SIZE;
+        int dc = releaseCol - pressCol;
+        int dr = releaseRow - pressRow;
+        if (dc == 0 && dr == 0) return;  // no movement
+
+        // Prefer the larger delta to determine primary drag direction
+        Direction dir;
+        if (Math.abs(dc) >= Math.abs(dr)) {
+            dir = dc > 0 ? Direction.EAST : Direction.WEST;
+        } else {
+            dir = dr > 0 ? Direction.SOUTH : Direction.NORTH;
+        }
+        controller.move(id, dir);
     }
 
     // Rendering
@@ -119,7 +125,7 @@ public class BoardPanel extends JPanel {
         }
 
         // Draw Exit
-        drawExit(g2d, board.getExit().getX(), board.getExit().getY());
+        drawExit();
 
         // Draw Vehicles: each vehicle may occupy multiple cells
         for (Vehicle vehicle : board.getVehicles().values()) {
@@ -129,8 +135,8 @@ public class BoardPanel extends JPanel {
         }
     }
 
-    private void drawExit(Graphics2D g, int r, int c) {
-        // Currently no custom rendering for exit; background serves as marker.
+    private void drawExit() {
+        // No action for rendering exit
     }
 
     private void drawWall(Graphics2D g, int r, int c) {
@@ -179,7 +185,7 @@ public class BoardPanel extends JPanel {
         return vehicleColors.get(id);
     }
 
-    /* Returns true if the char represents a moveable vehicle (not wall, exit or empty). */
+    // Returns true if the char represents a moveable vehicle (not wall, exit or empty)
     private boolean isVehicle(char id) {
         return id != ' ' && id != '+' && id != '@' && id != '\0' && id != '.';
     }

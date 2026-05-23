@@ -5,6 +5,10 @@ import java.awt.Component;
 
 public class GameDialogs {
 
+    private GameDialogs() {
+        // This utility class will not be instantiated
+    }
+
     public static void showLevelError(Component parent, String levelName) {
         JOptionPane.showMessageDialog(parent,
                 "Error: The level '" + levelName + "' has an incorrect format.\n" +

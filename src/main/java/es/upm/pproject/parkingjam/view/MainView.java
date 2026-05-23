@@ -19,11 +19,11 @@ public class MainView extends JFrame {
     private JLabel totalScoreLabel;
     private BoardPanel boardPanel;
 
-    private GameController controller;
+    private transient GameController controller;
 
     public MainView() {
         setTitle("Parking Jam");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
         initComponents();
         pack();
@@ -89,13 +89,17 @@ public class MainView extends JFrame {
         JMenuItem exitItem  = new JMenuItem("Exit");
         JButton undoButton  = new JButton("Undo");
 
-        newItem.addActionListener(e -> controller.newGame());
+        newItem.addActionListener(e -> {
+            if (controller != null) {
+                controller.newGame();
+            }
+        });
 
         resetItem.addActionListener(e -> {
             int response = JOptionPane.showConfirmDialog(this,
                     "Are you sure you want to restart the current level?",
                     "Restart Level", JOptionPane.YES_NO_OPTION);
-            if (response == JOptionPane.YES_OPTION) {
+            if (response == JOptionPane.YES_OPTION && controller != null) {
                 controller.restartLevel();
             }
         });

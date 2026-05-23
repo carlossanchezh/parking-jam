@@ -6,15 +6,11 @@ import es.upm.pproject.parkingjam.model.dto.GameState;
 public class GameServiceImpl implements GameService {
 
     private GameState gameState;
-    private MovementService movementService;
-    private ScoreService scoreService;
-    private VictoryService victoryService;
+    private final MovementService movementService;
+    private final ScoreService scoreService;
+    private final VictoryService victoryService;
 
-    public GameServiceImpl(GameState gameState) {
-        if (gameState == null) {
-            throw new IllegalArgumentException("gameState must not be null");
-        }
-        this.gameState = gameState;
+    public GameServiceImpl() {
         this.movementService = new MovementServiceImpl();
         this.scoreService = new ScoreServiceImpl();
         this.victoryService = new VictoryServiceImpl();
@@ -23,6 +19,14 @@ public class GameServiceImpl implements GameService {
     @Override
     public GameState getGameState() {
         return gameState;
+    }
+
+    @Override
+    public void setGameState(GameState gameState) {
+        if (gameState == null) {
+            throw new IllegalArgumentException("gameState must not be null");
+        }
+        this.gameState = gameState;
     }
 
     @Override
