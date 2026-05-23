@@ -35,7 +35,7 @@
         <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
         <sonar.projectName>${project.name}-${sonar.id}</sonar.projectName>
         <sonar.projectKey>${project.groupId}:${project.artifactId}:${sonar.projectName}:${sonar.id}</sonar.projectKey>
-        <sonar.coverage.exclusions>**/view,**/controller</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/view/**/*.java,**/controller/**/*.java</sonar.coverage.exclusions>
         <sonar.scm.provider>git</sonar.scm.provider>
 
     </properties>
