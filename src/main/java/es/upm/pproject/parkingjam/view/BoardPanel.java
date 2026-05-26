@@ -71,6 +71,9 @@ public class BoardPanel extends JPanel {
 
     // Handle mouse pressed
     private void mousePressedAux(MouseEvent e) {
+        pressedVehicleId = '\0';
+        selectedVehicleId = '\0';
+
         if (board == null) return;
 
         // Record cell where press started

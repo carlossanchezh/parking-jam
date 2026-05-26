@@ -50,11 +50,11 @@ public class Vehicle {
     }
 
     public boolean isVertical() {
-        return orientation.equals(Orientation.VERTICAL);
+        return orientation == Orientation.VERTICAL;
     }
 
     public boolean isHorizontal() {
-        return orientation.equals(Orientation.HORIZONTAL);
+        return orientation == Orientation.HORIZONTAL;
     }
 
     @Override
