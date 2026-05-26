@@ -37,7 +37,7 @@ public class LevelDAO {
             return level;
 
         } catch(LevelFormatException e){
-            logger.info("Level '{}': {}", fileName, e.getMessage());
+            logger.warn("Level '{}': {}", fileName, e.getMessage());
             throw new LevelDAOException("Invalid level: " + fileName, e);
         } catch(IOException e){
             logger.error("Error in reading level'{}'", fileName, e);
@@ -74,7 +74,7 @@ public class LevelDAO {
             nRows = Integer.parseInt(dims[0]);
             nCols = Integer.parseInt(dims[1]);
         } catch(NumberFormatException e){
-            throw new LevelFormatException("Dimensions must be numbers");
+            throw new LevelFormatException("Dimensions must be numbers", e);
         }
         if(nRows <= 0 || nCols <= 0){
             throw new LevelFormatException("Invalid dimensions");

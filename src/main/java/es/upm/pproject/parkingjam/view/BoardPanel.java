@@ -84,13 +84,21 @@ public class BoardPanel extends JPanel {
         if (board.isInBoard(pos)) {
             // Determine if a vehicle was pressed and save its id
             Optional<Vehicle> v = board.getVehicleAtPosition(pos);
-            pressedVehicleId = v.map(Vehicle::getId).orElse('\0');
-            // Select the clicked vehicle for visual feedback
-            if (isVehicle(pressedVehicleId)) {
-                selectedVehicleId = pressedVehicleId;
-                logger.debug("Vehicle '{}' selected at position ({}, {})", pressedVehicleId, pressRow, pressCol);
-                repaint();
+            if (v.isPresent()) {
+                pressedVehicleId = v.get().getId();
+                // Select the clicked vehicle for visual feedback
+                if (isVehicle(pressedVehicleId)) {
+                    selectedVehicleId = pressedVehicleId;
+                    logger.debug("Vehicle '{}' selected at position ({}, {})", pressedVehicleId, pressRow, pressCol);
+                    repaint();
+                } else {
+                    pressedVehicleId = '\0';
+                }
+            } else  {
+                pressedVehicleId = '\0';
             }
+        }  else {
+            pressedVehicleId = '\0';
         }
     }
 

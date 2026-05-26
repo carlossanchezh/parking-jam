@@ -113,7 +113,10 @@ public class MainView extends JFrame {
         exitItem.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this,
                     "Are you sure you want to exit?", "Exit", JOptionPane.YES_NO_OPTION);
-            if (confirm == JOptionPane.YES_OPTION) System.exit(0);
+            if (confirm == JOptionPane.YES_OPTION) {
+                dispose();
+                System.exit(0);
+            }
         });
 
         gameMenu.add(newItem);

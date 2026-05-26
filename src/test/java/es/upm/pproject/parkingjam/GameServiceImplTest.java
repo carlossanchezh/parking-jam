@@ -21,7 +21,7 @@ import es.upm.pproject.parkingjam.model.services.GameServiceImpl;
 
 @Nested
 @DisplayName("GameService tests")
-public class GameServiceImplTest {
+class GameServiceImplTest {
 
     private GameService gameService;
     private GameState gameState;
