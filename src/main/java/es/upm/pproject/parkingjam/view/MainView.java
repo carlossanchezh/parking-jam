@@ -2,6 +2,8 @@ package es.upm.pproject.parkingjam.view;
 
 import es.upm.pproject.parkingjam.controller.GameController;
 import es.upm.pproject.parkingjam.model.dto.Board;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,6 +15,7 @@ import java.awt.*;
  *   - Exposes update methods so the controller can refresh the UI
  */
 public class MainView extends JFrame {
+    private static final Logger logger = LoggerFactory.getLogger(MainView.class);
 
     private JLabel levelNameLabel;
     private JLabel levelScoreLabel;
@@ -28,12 +31,14 @@ public class MainView extends JFrame {
         initComponents();
         pack();
         setLocationRelativeTo(null);
+        logger.info("Main application window initialized");
     }
 
     // Called by App
     public void setController(GameController controller) {
         this.controller = controller;
         boardPanel.setController(controller);
+        logger.debug("Game controller attached to MainView");
     }
 
 
@@ -47,6 +52,7 @@ public class MainView extends JFrame {
             levelNameLabel.setText("Level: " + levelName);
             levelScoreLabel.setText("Level Score: " + levelScore);
             totalScoreLabel.setText("Total Score: " + totalScore);
+            logger.trace("UI status updated: {} - Level score: {}, Total score: {}", levelName, levelScore, totalScore);
         });
     }
 

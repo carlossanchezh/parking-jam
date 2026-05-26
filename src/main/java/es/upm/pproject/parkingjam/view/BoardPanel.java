@@ -5,6 +5,8 @@ import es.upm.pproject.parkingjam.model.dto.Board;
 import es.upm.pproject.parkingjam.model.dto.Direction;
 import es.upm.pproject.parkingjam.model.dto.Position;
 import es.upm.pproject.parkingjam.model.dto.Vehicle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,6 +20,7 @@ import java.util.Optional;
  * INTERACTION MODEL: click and drag a vehicle to move it one step in the drag direction.
  */
 public class BoardPanel extends JPanel {
+    private static final Logger logger = LoggerFactory.getLogger(BoardPanel.class);
 
     private static final int CELL_SIZE = 60;
     private transient Board board;
@@ -82,6 +85,7 @@ public class BoardPanel extends JPanel {
             // Select the clicked vehicle for visual feedback
             if (isVehicle(pressedVehicleId)) {
                 selectedVehicleId = pressedVehicleId;
+                logger.debug("Vehicle '{}' selected at position ({}, {})", pressedVehicleId, pressRow, pressCol);
                 repaint();
             }
         }
@@ -107,6 +111,7 @@ public class BoardPanel extends JPanel {
         } else {
             dir = dr > 0 ? Direction.SOUTH : Direction.NORTH;
         }
+        logger.debug("User drag detected for vehicle '{}': from ({}, {}) to ({}, {}), direction: {}", id, pressRow, pressCol, releaseRow, releaseCol, dir);
         controller.move(id, dir);
     }
 

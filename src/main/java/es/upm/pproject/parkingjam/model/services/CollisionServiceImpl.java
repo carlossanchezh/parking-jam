@@ -25,7 +25,6 @@ public class CollisionServiceImpl implements CollisionService {
         }
 
         Optional<Vehicle> vehicle = board.getVehicleAtPosition(position);
-
         return vehicle.isPresent() && vehicle.get().getId() != vehicleId;
     }
 

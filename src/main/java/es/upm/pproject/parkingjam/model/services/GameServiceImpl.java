@@ -2,8 +2,11 @@ package es.upm.pproject.parkingjam.model.services;
 
 import es.upm.pproject.parkingjam.model.dto.Direction;
 import es.upm.pproject.parkingjam.model.dto.GameState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GameServiceImpl implements GameService {
+    private static final Logger logger = LoggerFactory.getLogger(GameServiceImpl.class);
 
     private GameState gameState;
     private final MovementService movementService;
@@ -27,6 +30,7 @@ public class GameServiceImpl implements GameService {
             throw new IllegalArgumentException("gameState must not be null");
         }
         this.gameState = gameState;
+        logger.info("Game state set to level '{}' (Level {})", gameState.getCurrentLevelName(), gameState.getCurrentLevel());
     }
 
     @Override
@@ -35,6 +39,7 @@ public class GameServiceImpl implements GameService {
 
         if (moved) {
             gameState.setLevelScore(scoreService.increaseLevelScore(gameState.getLevelScore()));
+            logger.info("Vehicle '{}' moved {} - Level score increased to {}", vehicleId, direction, gameState.getLevelScore());
         }
 
         return moved;
@@ -48,7 +53,7 @@ public class GameServiceImpl implements GameService {
     @Override
     public void finishLevel() {
         int totalScore = scoreService.addLevelScoreToTotalScore(gameState.getTotalScore(),  gameState.getLevelScore());
-
         gameState.setTotalScore(totalScore);
+        logger.info("Level '{}' finished. Level score: {}, Total score: {}", gameState.getCurrentLevelName(), gameState.getLevelScore(), totalScore);
     }
 }

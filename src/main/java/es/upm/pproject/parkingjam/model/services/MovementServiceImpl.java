@@ -5,11 +5,14 @@ import es.upm.pproject.parkingjam.model.dto.Direction;
 import es.upm.pproject.parkingjam.model.dto.Position;
 import es.upm.pproject.parkingjam.model.dto.Vehicle;
 import es.upm.pproject.parkingjam.model.exceptions.VehicleNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MovementServiceImpl implements MovementService {
+    private static final Logger logger = LoggerFactory.getLogger(MovementServiceImpl.class);
     private final CollisionService collisionService;
 
     public MovementServiceImpl() {
@@ -37,6 +40,7 @@ public class MovementServiceImpl implements MovementService {
                 .orElseThrow(() -> new VehicleNotFoundException(vehicleId));
 
         if (!isMovementAllowed(vehicle, direction)) {
+            logger.warn("Movement not allowed for vehicle '{}' in direction {} (incorrect orientation)", vehicleId, direction);
             return false;
         }
 
@@ -44,11 +48,13 @@ public class MovementServiceImpl implements MovementService {
 
         for (Position newPosition : newPositions) {
             if (collisionService.collision(board, newPosition, vehicleId)) {
+                logger.warn("Collision detected for vehicle '{}' at position {}", vehicleId, newPosition);
                 return false;
             }
         }
 
         vehicle.setPositions(newPositions);
+        logger.info("Vehicle '{}' successfully moved to new positions", vehicleId);
         return true;
     }
 
