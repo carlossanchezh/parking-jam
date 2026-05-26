@@ -18,7 +18,7 @@ import es.upm.pproject.parkingjam.model.services.VictoryServiceImpl;
 
 @Nested
 @DisplayName("VictoryService tests")
-public class VictoryServiceImplTest {
+class VictoryServiceImplTest {
 
     private VictoryService victoryService;
 

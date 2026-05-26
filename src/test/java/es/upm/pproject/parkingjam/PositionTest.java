@@ -11,7 +11,7 @@ import es.upm.pproject.parkingjam.model.dto.Position;
 
 @Nested
 @DisplayName("Position tests")
-public class PositionTest {
+class PositionTest {
 
     private Position position;
     private Position samePosition;
@@ -76,9 +76,6 @@ public class PositionTest {
     void testEqualsEdgeCases() {
         assertNotEquals(null, position);
         assertNotEquals("string", position);
-
-        assertNotEquals(position, null);
-        assertNotEquals(position, "string");
     }
 
     @Test

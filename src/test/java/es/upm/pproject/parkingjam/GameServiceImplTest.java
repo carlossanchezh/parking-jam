@@ -51,7 +51,8 @@ public class GameServiceImplTest {
         Board board = new Board(7, 7, walls, exit, vehicles);
 
         gameState = new GameState(board, 1, "Level 1");
-        gameService = new GameServiceImpl(gameState);
+        gameService = new GameServiceImpl();
+        gameService.setGameState(gameState);
     }
 
     @Test
@@ -63,7 +64,8 @@ public class GameServiceImplTest {
     @Test
     @DisplayName("GameTest_02: should throw exception when constructor is called with null GameState")
     void testConstructorNullGameState() {
-        assertThrows(IllegalArgumentException.class, () -> new GameServiceImpl(null));
+        GameService service = new GameServiceImpl();
+        assertThrows(IllegalArgumentException.class, () -> service.setGameState(null));
     }
 
     @Test
@@ -127,7 +129,8 @@ public class GameServiceImplTest {
 
         Board newBoard = new Board(7, 7, walls, exit, vehicles);
         GameState newGameState = new GameState(newBoard, 1, "Level 1");
-        GameService newGameService = new GameServiceImpl(newGameState);
+        GameService newGameService = new GameServiceImpl();
+        newGameService.setGameState(newGameState);
 
         boolean result = newGameService.isLevelCompleted();
 

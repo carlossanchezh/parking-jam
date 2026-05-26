@@ -13,7 +13,7 @@ import es.upm.pproject.parkingjam.model.services.ScoreServiceImpl;
 
 @Nested
 @DisplayName("ScoreService tests")
-public class ScoreServiceImplTest {
+class ScoreServiceImplTest {
 
     private ScoreService scoreService;
 

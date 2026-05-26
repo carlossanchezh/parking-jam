@@ -18,7 +18,7 @@ import java.util.*;
 
 @Nested
 @DisplayName("GameState tests")
-public class GameStateTest {
+class GameStateTest {
 
     private static Board board;
     private GameState gameState;
@@ -98,8 +98,6 @@ public class GameStateTest {
         Set<Position> newWalls = new HashSet<>();
 
         Position newExit = new Position(5, 5);
-
-        Map<Character, Vehicle> newVehicles = new HashMap<>();
 
 
         List<Position> redCarPositions = new ArrayList<>();

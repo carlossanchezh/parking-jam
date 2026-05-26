@@ -37,7 +37,6 @@ public class GameControllerImpl implements GameController {
         this.view = view;
         this.gameService = gameService;
         this.levelDAO = levelDAO;
-        updateView();
     }
 
 

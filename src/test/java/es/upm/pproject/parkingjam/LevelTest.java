@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 @Nested
 @DisplayName("Level tests")
-public class LevelTest {
+class LevelTest {
 
     private static Level level;
     private static Board board;

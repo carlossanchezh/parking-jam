@@ -20,7 +20,7 @@ import es.upm.pproject.parkingjam.model.services.CollisionServiceImpl;
 
 @Nested
 @DisplayName("CollisionService tests")
-public class CollisionServiceImplTest {
+class CollisionServiceImplTest {
 
     private CollisionService collisionService;
 

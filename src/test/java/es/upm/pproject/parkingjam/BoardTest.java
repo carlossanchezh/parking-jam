@@ -17,7 +17,7 @@ import java.util.*;
 
 @Nested
 @DisplayName("Board tests")
-public class BoardTest {
+class BoardTest {
 
     private static Set<Position> walls;
     private static Position exit;
@@ -272,7 +272,8 @@ public class BoardTest {
     @Test
     @DisplayName("BoardTest_24: should throw exception when constructor is called with empty vehicles")
     void testConstructorEmptyVehicles() {
-        assertThrows(IllegalArgumentException.class, () -> new Board(7, 7, walls, exit, new HashMap<>()));
+        HashMap<Character, Vehicle> emptyVehicles = new HashMap<>();
+        assertThrows(IllegalArgumentException.class, () -> new Board(7, 7, walls, exit, emptyVehicles));
     }
 
 }

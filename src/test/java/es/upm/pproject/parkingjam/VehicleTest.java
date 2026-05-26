@@ -18,7 +18,7 @@ import es.upm.pproject.parkingjam.model.dto.Orientation;
 
 @Nested
 @DisplayName("Vehicle tests")
-public class VehicleTest {
+class VehicleTest {
 
     private static List<Position> horizontalPositions;
     private static List<Position> verticalPositions;
@@ -136,7 +136,8 @@ public class VehicleTest {
     @Test
     @DisplayName("VehicleTest_11: should throw exception when setPositions is called with empty list")
     void testSetPositionsEmpty() {
-        assertThrows(IllegalArgumentException.class, () -> horizontalVehicle.setPositions(List.of()));
+        List<Position> newPositions = List.of();
+        assertThrows(IllegalArgumentException.class, () -> horizontalVehicle.setPositions(newPositions));
     }
 
     @Test
@@ -148,7 +149,8 @@ public class VehicleTest {
     @Test
     @DisplayName("VehicleTest_13: should throw exception when constructor is called with empty positions")
     void testConstructorEmptyPositions() {
-        assertThrows(IllegalArgumentException.class, () -> new Vehicle('X', List.of(), false, Orientation.HORIZONTAL));
+        List<Position> positions = List.of();
+        assertThrows(IllegalArgumentException.class, () -> new Vehicle('X', positions, false, Orientation.HORIZONTAL));
     }
 
     @Test

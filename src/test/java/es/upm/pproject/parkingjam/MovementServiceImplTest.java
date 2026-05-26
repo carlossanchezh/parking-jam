@@ -22,7 +22,7 @@ import es.upm.pproject.parkingjam.model.services.MovementServiceImpl;
 
 @Nested
 @DisplayName("MovementService tests")
-public class MovementServiceImplTest {
+class MovementServiceImplTest {
 
     private MovementService movementService;
 

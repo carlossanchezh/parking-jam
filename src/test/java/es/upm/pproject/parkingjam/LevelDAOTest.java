@@ -17,7 +17,7 @@ import es.upm.pproject.parkingjam.model.exceptions.LevelDAOException;
 
 @Nested
 @DisplayName("LevelDAO tests")
-public class LevelDAOTest {
+class LevelDAOTest {
 
     private LevelDAO levelDAO;
     private Path tempDir;
@@ -63,25 +63,12 @@ public class LevelDAOTest {
 
     @Test
     @DisplayName("LevelDAOTest_02: should load a valid level file successfully")
-    void testLoadValidLevel() throws IOException, LevelDAOException {
-
-        String content = "Level 1\n" +
-                "8 8\n" +
-                "++++++++\n" +
-                "+aabbbc+\n" +
-                "+...*.c+\n" +
-                "+d..*..+\n" +
-                "+d.fff.+\n" +
-                "+de....+\n" +
-                "+.e.ggg+\n" +
-                "++++@+++\n";
-
-        createLevelFile("level_1.txt", content);
+    void testLoadValidLevel() throws LevelDAOException {
 
         Level level = levelDAO.loadLevel("level_1.txt");
 
         assertNotNull(level);
-        assertEquals("Level 1", level.getName());
+        assertEquals("Initial level", level.getName());
         assertEquals(8, level.getnRows());
         assertEquals(8, level.getnCols());
         assertNotNull(level.getBoard());

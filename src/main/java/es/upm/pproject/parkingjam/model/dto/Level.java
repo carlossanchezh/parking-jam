@@ -7,7 +7,7 @@ public class Level {
     private Board board;
 
     public Level(String name, int nRows, int nCols, Board board){
-        if(name == null || name.isEmpty()){
+        if(name == null || name.isBlank()){
             throw new IllegalArgumentException("Level name cannot be null or empty");
         }
         if(nRows <= 0 || nCols <= 0){
