@@ -13,4 +13,6 @@ public interface GameService {
     boolean isLevelCompleted();
 
     void finishLevel();
+
+    boolean undoLastMovement();
 }

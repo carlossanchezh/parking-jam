@@ -1,5 +1,8 @@
 package es.upm.pproject.parkingjam.model.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class GameState {
     private Board board;
     private int currentLevel;
@@ -7,6 +10,7 @@ public class GameState {
     private int levelScore;
     private int totalScore;
     private boolean finished;
+    private List<Move> movementHistory;
 
     public GameState(Board board, int currentLevel, String currentLevelName) {
         if (board == null) {
@@ -24,6 +28,7 @@ public class GameState {
         this.levelScore = 0;
         this.totalScore = 0;
         this.finished = false;
+        this.movementHistory = new ArrayList<>();
     }
 
     public Board getBoard() {
@@ -88,5 +93,27 @@ public class GameState {
 
     public void setFinished(boolean finished) {
         this.finished = finished;
+    }
+
+    public void addMovement(Move movement) {
+        if (movement == null) {
+            throw new IllegalArgumentException("Movement cannot be null");
+        }
+        movementHistory.add(movement);
+    }
+
+    public boolean hasMoves() {
+        return !movementHistory.isEmpty();
+    }
+
+    public Move removeLastMove() {
+        if (movementHistory.isEmpty()) {
+            throw new IllegalArgumentException("No movements to undo");
+        }
+        return movementHistory.remove(movementHistory.size() - 1);
+    }
+
+    public List<Move> getMovementHistory() {
+        return List.copyOf(movementHistory);
     }
 }

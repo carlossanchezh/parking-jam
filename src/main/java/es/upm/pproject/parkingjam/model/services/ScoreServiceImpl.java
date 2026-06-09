@@ -14,6 +14,13 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     @Override
+    public int decreaseLevelScore(int currentLevelScore) {
+        int newScore = currentLevelScore - 1;
+        logger.info("Level score decreased from {} to {}", currentLevelScore, newScore);
+        return newScore;
+    }
+
+    @Override
     public int resetLevelScore() {
         logger.info("Level score reset to 0");
         return 0;

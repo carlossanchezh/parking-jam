@@ -119,6 +119,12 @@ public class MainView extends JFrame {
             }
         });
 
+        undoButton.addActionListener(e -> {
+            if (controller != null) {
+                controller.undoMove();
+            }
+        });
+
         gameMenu.add(newItem);
         gameMenu.add(resetItem);
         gameMenu.addSeparator();

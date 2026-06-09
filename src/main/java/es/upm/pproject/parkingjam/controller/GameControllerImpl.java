@@ -96,6 +96,15 @@ public class GameControllerImpl implements GameController {
         }
     }
 
+    @Override
+    public void undoMove() {
+        boolean undone = gameService.undoLastMovement();
+        if (undone) {
+            logger.info("Undo last movement");
+            updateView();
+        }
+    }
+
 
     // ----------------------Helpers-----------------------------
 

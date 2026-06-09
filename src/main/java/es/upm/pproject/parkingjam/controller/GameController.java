@@ -19,4 +19,7 @@ public interface GameController {
     // Attempts to move a vehicle in the given direction.
     // After a successful move, checks if the level is completed.
     void move(char vehicleId, Direction direction);
+
+    // Undoes last movement
+    void undoMove();
 }

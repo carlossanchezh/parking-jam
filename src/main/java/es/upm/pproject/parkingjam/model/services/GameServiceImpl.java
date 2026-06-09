@@ -2,6 +2,7 @@ package es.upm.pproject.parkingjam.model.services;
 
 import es.upm.pproject.parkingjam.model.dto.Direction;
 import es.upm.pproject.parkingjam.model.dto.GameState;
+import es.upm.pproject.parkingjam.model.dto.Move;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,7 @@ public class GameServiceImpl implements GameService {
         if (moved) {
             gameState.setLevelScore(scoreService.increaseLevelScore(gameState.getLevelScore()));
             logger.info("Vehicle '{}' moved {} - Level score increased to {}", vehicleId, direction, gameState.getLevelScore());
+            gameState.addMovement(new Move(vehicleId, direction)); // Store move in memory
         }
 
         return moved;
@@ -55,5 +57,21 @@ public class GameServiceImpl implements GameService {
         int totalScore = scoreService.addLevelScoreToTotalScore(gameState.getTotalScore(),  gameState.getLevelScore());
         gameState.setTotalScore(totalScore);
         logger.info("Level '{}' finished. Level score: {}, Total score: {}", gameState.getCurrentLevelName(), gameState.getLevelScore(), totalScore);
+    }
+
+    @Override
+    public boolean undoLastMovement() {
+        if (!gameState.hasMoves()) {
+            return false;
+        }
+
+        Move lastMove = gameState.removeLastMove();
+
+        boolean undoMovement = movementService.move(gameState.getBoard(), lastMove.getVehicleId(), lastMove.getDirection().getOppositeDirection());
+
+        if (undoMovement) {
+            gameState.setLevelScore(scoreService.decreaseLevelScore(gameState.getLevelScore()));
+        }
+        return undoMovement;
     }
 }
