@@ -76,4 +76,90 @@ class ScoreServiceImplTest {
         assertEquals(35, total);
     }
 
+    @Test
+    @DisplayName("ScoreServiceTest_07: should decrease level score by 1 when decreaseLevelScore is called")
+    void testDecreaseLevelScore() {
+        assertEquals(-1, scoreService.decreaseLevelScore(0));
+        assertEquals(3, scoreService.decreaseLevelScore(4));
+        assertEquals(8, scoreService.decreaseLevelScore(9));
+        assertEquals(98, scoreService.decreaseLevelScore(99));
+    }
+
+    @Test
+    @DisplayName("ScoreServiceTest_08: should decrease level score multiple times correctly")
+    void testMultipleDecreases() {
+        int score = 10;
+        score = scoreService.decreaseLevelScore(score);
+        assertEquals(9, score);
+        score = scoreService.decreaseLevelScore(score);
+        assertEquals(8, score);
+        score = scoreService.decreaseLevelScore(score);
+        assertEquals(7, score);
+    }
+
+    @Test
+    @DisplayName("ScoreServiceTest_09: should handle multiple increases and decreases correctly")
+    void testMultipleIncreasesAndDecreases() {
+        int score = 0;
+
+        // Increase three times
+        score = scoreService.increaseLevelScore(score);
+        assertEquals(1, score);
+        score = scoreService.increaseLevelScore(score);
+        assertEquals(2, score);
+        score = scoreService.increaseLevelScore(score);
+        assertEquals(3, score);
+
+        // Decrease two times
+        score = scoreService.decreaseLevelScore(score);
+        assertEquals(2, score);
+        score = scoreService.decreaseLevelScore(score);
+        assertEquals(1, score);
+
+        // Increase again
+        score = scoreService.increaseLevelScore(score);
+        assertEquals(2, score);
+
+        // Decrease again
+        score = scoreService.decreaseLevelScore(score);
+        assertEquals(1, score);
+    }
+
+    @Test
+    @DisplayName("ScoreServiceTest_10: should handle increase, decrease and add to total correctly together")
+    void testIncreaseDecreaseAndAddToTotal() {
+        int score = 0;
+        int total = 0;
+
+        // Increase two times
+        score = scoreService.increaseLevelScore(score);
+        assertEquals(1, score);
+        score = scoreService.increaseLevelScore(score);
+        assertEquals(2, score);
+
+        // Add level score to total
+        total = scoreService.addLevelScoreToTotalScore(total, score);
+        assertEquals(2, total);
+
+        // increase again
+        score = scoreService.increaseLevelScore(score);
+        assertEquals(3, score);
+
+        // decrease
+        score = scoreService.decreaseLevelScore(score);
+        assertEquals(2, score);
+
+        // Add level score to total again
+        total = scoreService.addLevelScoreToTotalScore(total, score);
+        assertEquals(4, total);
+
+        // decrease again
+        score = scoreService.decreaseLevelScore(score);
+        assertEquals(1, score);
+
+        // Add level score to total again
+        total = scoreService.addLevelScoreToTotalScore(total, score);
+        assertEquals(5, total);
+    }
+
 }
