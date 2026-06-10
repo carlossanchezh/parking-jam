@@ -2,17 +2,12 @@ package es.upm.pproject.parkingjam.unit.dto;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import es.upm.pproject.parkingjam.model.dto.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import es.upm.pproject.parkingjam.model.dto.Vehicle;
-import es.upm.pproject.parkingjam.model.dto.Position;
-import es.upm.pproject.parkingjam.model.dto.Board;
-import es.upm.pproject.parkingjam.model.dto.Orientation;
-import es.upm.pproject.parkingjam.model.dto.GameState;
 
 import java.util.*;
 
@@ -224,6 +219,80 @@ class GameStateTest {
     void testConstructorEmptyLevelName() {
         assertThrows(IllegalArgumentException.class, () -> new GameState(board, 1, ""));
         assertThrows(IllegalArgumentException.class, () -> new GameState(board, 1, "   "));
+    }
+
+    @Test
+    @DisplayName("GameStateTest_24: should add movement to history when addMovement is called")
+    void testAddMovement() {
+        Move move = new Move('A', Direction.NORTH);
+        gameState.addMovement(move);
+
+        assertEquals(1, gameState.getMovementHistory().size());
+        assertEquals(move, gameState.getMovementHistory().get(0));
+    }
+
+    @Test
+    @DisplayName("GameStateTest_25: should throw exception when addMovement is called with null")
+    void testAddMovementNull() {
+        assertThrows(IllegalArgumentException.class, () -> gameState.addMovement(null));
+    }
+
+    @Test
+    @DisplayName("GameStateTest_26: should return false when hasMoves is called with empty history")
+    void testHasMovesFalse() {
+        assertFalse(gameState.hasMoves());
+    }
+
+    @Test
+    @DisplayName("GameStateTest_27: should return true when hasMoves is called with movements in history")
+    void testHasMovesTrue() {
+        assertFalse(gameState.hasMoves());
+        gameState.addMovement(new Move('A', Direction.NORTH));
+        assertTrue(gameState.hasMoves());
+    }
+
+    @Test
+    @DisplayName("GameStateTest_28: should remove and return last move when removeLastMove is called")
+    void testRemoveLastMove() {
+        Move move1 = new Move('A', Direction.NORTH);
+        Move move2 = new Move('B', Direction.EAST);
+        gameState.addMovement(move1);
+        gameState.addMovement(move2);
+
+        Move removed = gameState.removeLastMove();
+
+        assertEquals(move2, removed);
+        assertEquals(1, gameState.getMovementHistory().size());
+        assertEquals(move1, gameState.getMovementHistory().get(0));
+    }
+
+    @Test
+    @DisplayName("GameStateTest_29: should throw exception when removeLastMove is called on empty history")
+    void testRemoveLastMoveEmpty() {
+        assertThrows(IllegalArgumentException.class, () -> gameState.removeLastMove());
+    }
+
+    @Test
+    @DisplayName("GameStateTest_30: should handle multiple moves order correctly")
+    void testMultipleMovesLIFO() {
+        Move move1 = new Move('A', Direction.NORTH);
+        Move move2 = new Move('B', Direction.SOUTH);
+        Move move3 = new Move('C', Direction.EAST);
+
+        gameState.addMovement(move1);
+        gameState.addMovement(move2);
+        gameState.addMovement(move3);
+
+        assertEquals(3, gameState.getMovementHistory().size());
+
+        assertEquals(move3, gameState.removeLastMove());
+        assertEquals(2, gameState.getMovementHistory().size());
+
+        assertEquals(move2, gameState.removeLastMove());
+        assertEquals(1, gameState.getMovementHistory().size());
+
+        assertEquals(move1, gameState.removeLastMove());
+        assertTrue(gameState.getMovementHistory().isEmpty());
     }
 
 }
