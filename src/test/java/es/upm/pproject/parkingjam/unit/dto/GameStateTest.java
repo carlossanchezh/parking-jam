@@ -1,4 +1,4 @@
-package es.upm.pproject.parkingjam;
+package es.upm.pproject.parkingjam.unit.dto;
 
 import static org.junit.jupiter.api.Assertions.*;
 
