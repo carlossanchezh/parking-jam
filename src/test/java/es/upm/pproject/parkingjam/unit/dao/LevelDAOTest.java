@@ -26,28 +26,31 @@ class LevelDAOTest {
     void setUp() throws IOException {
 
         levelDAO = new LevelDAO();
-
-        // Create temporary levels directory
         tempDir = Paths.get("levels");
-        if (!Files.exists(tempDir)) {
-            Files.createDirectories(tempDir);
+
+        // Delete old directory if exists
+        if (Files.exists(tempDir)) {
+            // Delete all files inside
+            for (File file : tempDir.toFile().listFiles()) {
+                file.delete();
+            }
+
+            // Delete the empty directory
+            Files.deleteIfExists(tempDir);
         }
+
+        Files.createDirectories(tempDir);
     }
 
     @AfterEach
     void tearDown() throws IOException {
-        // Clean up temporary files
-        if (Files.exists(tempDir)) {
-            Files.walk(tempDir)
-                    .filter(Files::isRegularFile)
-                    .forEach(file -> {
-                        try {
-                            Files.delete(file);
-                        } catch (IOException e) {
-                            // Ignore
-                        }
-                    });
+
+        // Delete all files inside the directory
+        for (File file : tempDir.toFile().listFiles()) {
+            file.delete();
         }
+        // Delete the empty directory
+        Files.deleteIfExists(tempDir);
     }
 
     private void createLevelFile(String fileName, String content) throws IOException {
