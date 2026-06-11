@@ -205,4 +205,82 @@ class GameServiceImplTest {
         assertEquals(0, gameState.getLevelScore());
     }
 
+    @Test
+    @DisplayName("GameTest_14: should undo last movement successfully after a move")
+    void testUndoLastMovementAfterMove() {
+        // Make a move first
+        assertTrue(gameService.move('A', Direction.EAST));
+        assertEquals(1, gameState.getLevelScore());
+        assertEquals(1, gameState.getMovementHistory().size());
+
+        // Undo the move
+        boolean undone = gameService.undoLastMovement();
+        assertTrue(undone);
+        assertEquals(0, gameState.getLevelScore());
+        assertEquals(0, gameState.getMovementHistory().size());
+    }
+
+    @Test
+    @DisplayName("GameTest_15: should return false when undoLastMovement is called with no moves")
+    void testUndoLastMovementNoMoves() {
+        assertFalse(gameService.undoLastMovement());
+        assertEquals(0, gameState.getLevelScore());
+        assertEquals(0, gameState.getMovementHistory().size());
+    }
+
+    @Test
+    @DisplayName("GameTest_16: should undo multiple moves in reverse order correctly")
+    void testUndoMultipleMoves() {
+        // Three moves
+        gameService.move('A', Direction.EAST);
+        gameService.move('A', Direction.EAST);
+        gameService.move('A', Direction.WEST);
+        assertEquals(3, gameState.getLevelScore());
+        assertEquals(3, gameState.getMovementHistory().size());
+
+        gameService.undoLastMovement();
+        assertEquals(2, gameState.getLevelScore());
+        assertEquals(2, gameState.getMovementHistory().size());
+
+        gameService.undoLastMovement();
+        assertEquals(1, gameState.getLevelScore());
+        assertEquals(1, gameState.getMovementHistory().size());
+
+        gameService.undoLastMovement();
+        assertEquals(0, gameState.getLevelScore());
+        assertEquals(0, gameState.getMovementHistory().size());
+    }
+
+    @Test
+    @DisplayName("GameTest_17: should only undo successful moves")
+    void testUndoOnlySuccessfulMoves() {
+
+        assertTrue(gameService.move('A', Direction.EAST));
+        assertEquals(1, gameState.getLevelScore());
+        assertEquals(1, gameState.getMovementHistory().size());
+
+        // Vehicle 'A' is horizontal, cannot move NORTH (only EAST/WEST allowed)
+        assertFalse(gameService.move('A', Direction.NORTH));
+        assertEquals(1, gameState.getLevelScore());
+        assertEquals(1, gameState.getMovementHistory().size());
+
+        assertTrue(gameService.undoLastMovement());
+        assertEquals(0, gameState.getLevelScore());
+        assertEquals(0, gameState.getMovementHistory().size());
+    }
+
+    @Test
+    @DisplayName("GameTest_18: should return false when undo is called after already undoing all moves")
+    void testUndoAfterAllMovesUndone() {
+
+        gameService.move('A', Direction.EAST);
+        assertEquals(1, gameState.getLevelScore());
+
+        gameService.undoLastMovement();
+        assertEquals(0, gameState.getLevelScore());
+
+        assertFalse(gameService.undoLastMovement());
+        assertEquals(0, gameState.getLevelScore());
+    }
+
 }
