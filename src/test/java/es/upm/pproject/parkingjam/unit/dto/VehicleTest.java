@@ -109,14 +109,7 @@ class VehicleTest {
     }
 
     @Test
-    @DisplayName("VehicleTest_08: should return immutable copy of positions when getPositions is called")
-    void testGetPositionsReturnsImmutableCopy() {
-        List<Position> positions = horizontalVehicle.getPositions();
-        assertEquals(3, positions.size());
-    }
-
-    @Test
-    @DisplayName("VehicleTest_09: should update positions correctly when setPositions is called")
+    @DisplayName("VehicleTest_08: should update positions correctly when setPositions is called")
     void testSetPositions() {
         List<Position> newPositions = List.of(new Position(5, 5), new Position(5, 6));
 
@@ -128,79 +121,135 @@ class VehicleTest {
     }
 
     @Test
-    @DisplayName("VehicleTest_10: should throw exception when setPositions is called with null")
+    @DisplayName("VehicleTest_09: should throw exception when setPositions is called with null")
     void testSetPositionsNull() {
         assertThrows(IllegalArgumentException.class, () -> horizontalVehicle.setPositions(null));
     }
 
     @Test
-    @DisplayName("VehicleTest_11: should throw exception when setPositions is called with empty list")
+    @DisplayName("VehicleTest_10: should throw exception when setPositions is called with empty list")
     void testSetPositionsEmpty() {
         List<Position> newPositions = List.of();
         assertThrows(IllegalArgumentException.class, () -> horizontalVehicle.setPositions(newPositions));
     }
 
     @Test
-    @DisplayName("VehicleTest_12: should throw exception when constructor is called with null positions")
+    @DisplayName("VehicleTest_11: should throw exception when constructor is called with null positions")
     void testConstructorNullPositions() {
         assertThrows(IllegalArgumentException.class, () -> new Vehicle('X', null, false, Orientation.HORIZONTAL));
     }
 
     @Test
-    @DisplayName("VehicleTest_13: should throw exception when constructor is called with empty positions")
+    @DisplayName("VehicleTest_12: should throw exception when constructor is called with empty positions")
     void testConstructorEmptyPositions() {
         List<Position> positions = List.of();
         assertThrows(IllegalArgumentException.class, () -> new Vehicle('X', positions, false, Orientation.HORIZONTAL));
     }
 
     @Test
-    @DisplayName("VehicleTest_14: should throw exception when constructor is called with null orientation")
+    @DisplayName("VehicleTest_13: should throw exception when constructor is called with null orientation")
     void testConstructorNullOrientation() {
         assertThrows(IllegalArgumentException.class, () -> new Vehicle('X', horizontalPositions, false, null));
     }
 
     @Test
-    @DisplayName("VehicleTest_15: should return true when comparing same object")
+    @DisplayName("VehicleTest_14: should return true when comparing same object")
     void testEqualsSameObject() {
         assertEquals(horizontalVehicle, horizontalVehicle);
         assertEquals(verticalVehicle, verticalVehicle);
     }
 
     @Test
-    @DisplayName("VehicleTest_16: should return true when comparing vehicles with same attributes")
+    @DisplayName("VehicleTest_15: should return true when comparing vehicles with same attributes")
     void testEqualsSameAttributes() {
         assertEquals(horizontalVehicle, sameHorizontalVehicle);
         assertEquals(sameHorizontalVehicle, horizontalVehicle);
     }
 
     @Test
-    @DisplayName("VehicleTest_17: should return false when comparing vehicles with different attributes")
+    @DisplayName("VehicleTest_16: should return false when comparing vehicles with different attributes")
     void testEqualsDifferentAttributes() {
         assertNotEquals(horizontalVehicle, verticalVehicle);
         assertNotEquals(horizontalVehicle, differentVehicle);
     }
 
     @Test
-    @DisplayName("VehicleTest_18: should return false when comparing with null")
+    @DisplayName("VehicleTest_17: should return false when comparing with null")
     void testEqualsNull() {
         assertNotEquals(null, horizontalVehicle);
     }
 
     @Test
-    @DisplayName("VehicleTest_19: should return false when comparing with different type")
+    @DisplayName("VehicleTest_18: should return false when comparing with different type")
     void testEqualsDifferentType() {
         assertNotEquals("coche", horizontalVehicle);
     }
 
     @Test
-    @DisplayName("VehicleTest_20: should return same hash code for vehicles with same attributes")
+    @DisplayName("VehicleTest_21: should return same hash code for vehicles with same attributes")
     void testHashCodeSame() {
         assertEquals(horizontalVehicle.hashCode(), sameHorizontalVehicle.hashCode());
     }
 
     @Test
-    @DisplayName("VehicleTest_21: should return different hash code for vehicles with different attributes")
+    @DisplayName("VehicleTest_22: should return different hash code for vehicles with different attributes")
     void testHashCodeDifferent() {
         assertNotEquals(horizontalVehicle.hashCode(), verticalVehicle.hashCode());
+    }
+
+    @Test
+    @DisplayName("VehicleTest_23: should create immutable copy of positions in constructor")
+    void testConstructorCreatesImmutableCopy() {
+        List<Position> positions = new ArrayList<>();
+        positions.add(new Position(1, 1));
+        positions.add(new Position(1, 2));
+
+        Vehicle vehicle = new Vehicle('A', positions, false, Orientation.HORIZONTAL);
+
+        // Modify original list after creating vehicle
+        positions.add(new Position(1, 3));
+
+        // Vehicles positions should remain unchanged
+        assertEquals(2, vehicle.getSize());
+        assertEquals(new Position(1, 1), vehicle.getPositions().get(0));
+        assertEquals(new Position(1, 2), vehicle.getPositions().get(1));
+    }
+
+    @Test
+    @DisplayName("VehicleTest_24: should create immutable copy when setPositions is called")
+    void testSetPositionsCreatesImmutableCopy() {
+        List<Position> positions = new ArrayList<>();
+        positions.add(new Position(1, 1));
+        positions.add(new Position(1, 2));
+
+        Vehicle vehicle = new Vehicle('A', positions, false, Orientation.HORIZONTAL);
+
+        List<Position> newPositions = new ArrayList<>();
+        newPositions.add(new Position(2, 2));
+        newPositions.add(new Position(2, 3));
+
+        vehicle.setPositions(newPositions);
+
+        // Modify the list after setting
+        newPositions.add(new Position(2, 4));
+
+        // Vehicles positions should remain unchanged
+        assertEquals(2, vehicle.getSize());
+        assertEquals(new Position(2, 2), vehicle.getPositions().get(0));
+        assertEquals(new Position(2, 3), vehicle.getPositions().get(1));
+    }
+
+    @Test
+    @DisplayName("VehicleTest_25: should return immutable copy when getPositions is called")
+    void testGetPositionsReturnsImmutableCopy() {
+        List<Position> positions = new ArrayList<>();
+        positions.add(new Position(1, 1));
+        positions.add(new Position(1, 2));
+
+        Vehicle vehicle = new Vehicle('A', positions, false, Orientation.HORIZONTAL);
+
+        List<Position> getPositions = vehicle.getPositions();
+
+        assertThrows(UnsupportedOperationException.class, () -> getPositions.add(new Position(99, 99)));
     }
 }

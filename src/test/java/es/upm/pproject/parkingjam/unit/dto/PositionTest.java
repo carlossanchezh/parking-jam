@@ -90,4 +90,17 @@ class PositionTest {
         assertNotEquals(position.hashCode(), differentPosition.hashCode());
     }
 
+    @Test
+    @DisplayName("PositionTest_10: should be immutable addCoordinates creates new position without modifying original")
+    void testImmutabilityAddCoordinates() {
+        Position position = new Position(2, 3);
+        Position newPosition = position.addCoordinates(1, 1);
+
+        assertEquals(2, position.getX());
+        assertEquals(3, position.getY());
+
+        assertEquals(3, newPosition.getX());
+        assertEquals(4, newPosition.getY());
+    }
+
 }
