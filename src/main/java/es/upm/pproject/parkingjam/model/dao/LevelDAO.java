@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import es.upm.pproject.parkingjam.model.dto.*;
 import es.upm.pproject.parkingjam.model.exceptions.LevelDAOException;
 import es.upm.pproject.parkingjam.model.exceptions.LevelFormatException;
+import es.upm.pproject.parkingjam.model.exceptions.LevelNotFoundException;
 
 public class LevelDAO {         
 
@@ -52,7 +53,7 @@ public class LevelDAO {
         if (Files.exists(resourcesPath)) {
             return resourcesPath;
         }
-        throw new LevelDAOException("Level file not found: " + fileName);
+        throw new LevelNotFoundException("Level file not found: " + fileName);
     }
 
     // Helper that parses a level from a .txt file

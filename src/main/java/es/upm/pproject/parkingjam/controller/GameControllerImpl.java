@@ -3,6 +3,7 @@ package es.upm.pproject.parkingjam.controller;
 import es.upm.pproject.parkingjam.model.dao.LevelDAO;
 import es.upm.pproject.parkingjam.model.dto.*;
 import es.upm.pproject.parkingjam.model.exceptions.LevelDAOException;
+import es.upm.pproject.parkingjam.model.exceptions.LevelNotFoundException;
 import es.upm.pproject.parkingjam.model.services.GameService;
 import es.upm.pproject.parkingjam.view.*;
 
@@ -54,8 +55,8 @@ public class GameControllerImpl implements GameController {
     public void newGame() {
         logger.info("Starting new game");
         try {
-            loadLevel(1, 0);
-        } catch (LevelDAOException e) {
+            loadNextValidLevel(1, 0);
+        } catch (LevelNotFoundException e) {
             logger.error("Error loading first level", e);
             GameDialogs.showLevelError(view, "level_1.txt");
         }
@@ -120,6 +121,22 @@ public class GameControllerImpl implements GameController {
         updateView();
     }
 
+    private void loadNextValidLevel(int levelNumber, int totalScore) throws LevelNotFoundException{
+        int currentLevel = levelNumber;
+        while(true){
+            try{
+                loadLevel(currentLevel, totalScore);
+                return;
+            } catch(LevelNotFoundException e){
+                throw e;
+            } catch(LevelDAOException e){
+                logger.warn("Skipping invalid level {}", currentLevel, e);
+                GameDialogs.showLevelError(view, "level_"+ currentLevel + ".txt");
+                currentLevel++;
+            }
+        }
+    }
+
     // Called after a move confirms the level is completed
     private void onLevelCompleted() {
         gameService.finishLevel();
@@ -135,7 +152,7 @@ public class GameControllerImpl implements GameController {
         );
 
         try {
-            loadLevel(nextLevel, updatedTotal);
+            loadNextValidLevel(nextLevel, updatedTotal);
         }  catch (LevelDAOException e) {
             // If no more levels to load, win game
             GameDialogs.showVictory(view, updatedTotal);
