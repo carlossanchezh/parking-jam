@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import es.upm.pproject.parkingjam.model.dto.Level;
 import es.upm.pproject.parkingjam.model.dao.LevelDAO;
 import es.upm.pproject.parkingjam.model.exceptions.LevelDAOException;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @Nested
 @DisplayName("LevelDAO tests")
@@ -77,14 +79,28 @@ class LevelDAOTest {
         assertNotNull(level.getBoard());
     }
 
+    @ParameterizedTest
+    @DisplayName("LevelDAOTest_03: should load multiple valid level files successfully")
+    @ValueSource(strings = {"level_1.txt", "level_2.txt", "level_3.txt"})
+    void testLoadValidLevels(String levelFileName) throws LevelDAOException {
+        Level level = levelDAO.loadLevel(levelFileName);
+
+        assertNotNull(level);
+        assertNotNull(level.getName());
+        assertFalse(level.getName().isBlank());
+        assertTrue(level.getnRows() > 0);
+        assertTrue(level.getnCols() > 0);
+        assertNotNull(level.getBoard());
+    }
+
     @Test
-    @DisplayName("LevelDAOTest_03: should throw LevelDAOException when file does not exist")
+    @DisplayName("LevelDAOTest_04: should throw LevelDAOException when file does not exist")
     void testLoadNonExistentFile() {
         assertThrows(LevelDAOException.class, () -> levelDAO.loadLevel("nonexistent.txt"));
     }
 
     @Test
-    @DisplayName("LevelDAOTest_04: should throw LevelDAOException when level name is missing")
+    @DisplayName("LevelDAOTest_05: should throw LevelDAOException when level name is missing")
     void testLoadMissingName() throws IOException {
         String content = "\n" +
                 "8 8\n" +
@@ -103,7 +119,7 @@ class LevelDAOTest {
     }
 
     @Test
-    @DisplayName("LevelDAOTest_05: should throw LevelDAOException when dimensions are missing")
+    @DisplayName("LevelDAOTest_06: should throw LevelDAOException when dimensions are missing")
     void testLoadMissingDimensions() throws IOException {
         String content = "Level 1\n";
 
@@ -113,7 +129,7 @@ class LevelDAOTest {
     }
 
     @Test
-    @DisplayName("LevelDAOTest_06: should throw LevelDAOException when dimensions format is invalid")
+    @DisplayName("LevelDAOTest_07: should throw LevelDAOException when dimensions format is invalid")
     void testLoadInvalidDimensionsFormat() throws IOException {
         String content = "Level 1\n" +
                 "8 8 8\n" +
@@ -132,7 +148,7 @@ class LevelDAOTest {
     }
 
     @Test
-    @DisplayName("LevelDAOTest_07: should throw LevelDAOException when dimensions are not numbers")
+    @DisplayName("LevelDAOTest_08: should throw LevelDAOException when dimensions are not numbers")
     void testLoadDimensionsNotNumbers() throws IOException {
         String content = "Level 1\n" +
                 "a b\n" +
@@ -151,7 +167,7 @@ class LevelDAOTest {
     }
 
     @Test
-    @DisplayName("LevelDAOTest_08: should throw LevelDAOException when dimensions are invalid (zero or negative)")
+    @DisplayName("LevelDAOTest_09: should throw LevelDAOException when dimensions are invalid (zero or negative)")
     void testLoadInvalidDimensions() throws IOException {
         String content = "Level 1\n" +
                 "0 8\n" +
@@ -170,7 +186,7 @@ class LevelDAOTest {
     }
 
     @Test
-    @DisplayName("LevelDAOTest_09: should throw LevelDAOException when board row is missing")
+    @DisplayName("LevelDAOTest_10: should throw LevelDAOException when board row is missing")
     void testLoadMissingBoardRow() throws IOException {
         String content = "Level 1\n" +
                 "8 8\n" +
@@ -187,7 +203,7 @@ class LevelDAOTest {
     }
 
     @Test
-    @DisplayName("LevelDAOTest_10: should throw LevelDAOException when row has incorrect size")
+    @DisplayName("LevelDAOTest_11: should throw LevelDAOException when row has incorrect size")
     void testLoadIncorrectRowSize() throws IOException {
         String content = "Level 1\n" +
                 "8 8\n" +
@@ -206,7 +222,7 @@ class LevelDAOTest {
     }
 
     @Test
-    @DisplayName("LevelDAOTest_11: should throw LevelDAOException when board has invalid character")
+    @DisplayName("LevelDAOTest_12: should throw LevelDAOException when board has invalid character")
     void testLoadInvalidCharacter() throws IOException {
         String content = "Level 1\n" +
                 "8 8\n" +
@@ -225,7 +241,7 @@ class LevelDAOTest {
     }
 
     @Test
-    @DisplayName("LevelDAOTest_12: should throw LevelDAOException when board has no exit")
+    @DisplayName("LevelDAOTest_13: should throw LevelDAOException when board has no exit")
     void testLoadNoExit() throws IOException {
         String content = "Level 1\n" +
                 "8 8\n" +
@@ -244,7 +260,7 @@ class LevelDAOTest {
     }
 
     @Test
-    @DisplayName("LevelDAOTest_13: should throw LevelDAOException when board has multiple exits")
+    @DisplayName("LevelDAOTest_14: should throw LevelDAOException when board has multiple exits")
     void testLoadMultipleExits() throws IOException {
         String content = "Level 1\n" +
                 "8 8\n" +
@@ -263,7 +279,7 @@ class LevelDAOTest {
     }
 
     @Test
-    @DisplayName("LevelDAOTest_14: should throw LevelDAOException when board has no red car")
+    @DisplayName("LevelDAOTest_15: should throw LevelDAOException when board has no red car")
     void testLoadNoRedCar() throws IOException {
         String content = "Level 1\n" +
                 "8 8\n" +
@@ -282,7 +298,7 @@ class LevelDAOTest {
     }
 
     @Test
-    @DisplayName("LevelDAOTest_15: should throw LevelDAOException when red car has only one cell")
+    @DisplayName("LevelDAOTest_16: should throw LevelDAOException when red car has only one cell")
     void testLoadRedCarWithOneCell() throws IOException {
         String content = "Level 1\n" +
                 "8 8\n" +
