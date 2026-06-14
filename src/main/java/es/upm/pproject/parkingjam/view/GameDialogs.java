@@ -33,4 +33,25 @@ public class GameDialogs {
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
+    public static void showSaveSuccess(Component parent) {
+        JOptionPane.showMessageDialog(parent,
+                "Game saved successfully!",
+                "Save Game",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public static void showSaveError(Component parent, String reason) {
+        JOptionPane.showMessageDialog(parent,
+                "Error: Could not save the game.\n" + (reason != null ? reason : ""),
+                "Save Game",
+                JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void showLoadError(Component parent, String reason) {
+        JOptionPane.showMessageDialog(parent,
+                "Error: Could not load a saved game.\n" + (reason != null ? reason : ""),
+                "Load Game",
+                JOptionPane.ERROR_MESSAGE);
+    }
+
 }

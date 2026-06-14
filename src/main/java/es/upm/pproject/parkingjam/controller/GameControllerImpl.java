@@ -1,9 +1,10 @@
 package es.upm.pproject.parkingjam.controller;
 
 import es.upm.pproject.parkingjam.model.dao.LevelDAO;
+import es.upm.pproject.parkingjam.model.dao.SaveGameDAO;
 import es.upm.pproject.parkingjam.model.dto.*;
 import es.upm.pproject.parkingjam.model.exceptions.LevelDAOException;
-import es.upm.pproject.parkingjam.model.exceptions.LevelNotFoundException;
+import es.upm.pproject.parkingjam.model.exceptions.SaveGameDAOException;
 import es.upm.pproject.parkingjam.model.services.GameService;
 import es.upm.pproject.parkingjam.view.*;
 
@@ -22,6 +23,8 @@ public class GameControllerImpl implements GameController {
     private final MainView view;
     // DAO used only for loading level files
     private final LevelDAO levelDAO;
+    // DAO used for saving/loading the player's progress
+    private final SaveGameDAO saveGameDAO;
 
 
     public GameControllerImpl(MainView view, GameService gameService, LevelDAO levelDAO) {
@@ -38,6 +41,7 @@ public class GameControllerImpl implements GameController {
         this.view = view;
         this.gameService = gameService;
         this.levelDAO = levelDAO;
+        this.saveGameDAO = new SaveGameDAO();
     }
 
 
@@ -55,8 +59,8 @@ public class GameControllerImpl implements GameController {
     public void newGame() {
         logger.info("Starting new game");
         try {
-            loadNextValidLevel(1, 0);
-        } catch (LevelNotFoundException e) {
+            loadLevel(1, 0);
+        } catch (LevelDAOException e) {
             logger.error("Error loading first level", e);
             GameDialogs.showLevelError(view, "level_1.txt");
         }
@@ -107,6 +111,37 @@ public class GameControllerImpl implements GameController {
     }
 
 
+    // Saves the current game progress to disk.
+    // Called by the Save Game menu item / shortcut in MainView.
+    @Override
+    public void saveGame() {
+        try {
+            saveGameDAO.saveGame(gameService.getGameState());
+            logger.info("Game saved successfully");
+            GameDialogs.showSaveSuccess(view);
+        } catch (SaveGameDAOException e) {
+            logger.error("Error saving game", e);
+            GameDialogs.showSaveError(view, e.getMessage());
+        }
+    }
+
+
+    // Loads a previously saved game and refreshes the view.
+    // Called by the Load Game menu item in MainView.
+    @Override
+    public void loadGame() {
+        try {
+            GameState loadedState = saveGameDAO.loadGame();
+            gameService.setGameState(loadedState);
+            logger.info("Game loaded successfully");
+            updateView();
+        } catch (SaveGameDAOException e) {
+            logger.error("Error loading game", e);
+            GameDialogs.showLoadError(view, e.getMessage());
+        }
+    }
+
+
     // ----------------------Helpers-----------------------------
 
     private void loadLevel(int levelNumber, int totalScore) throws LevelDAOException {
@@ -119,22 +154,6 @@ public class GameControllerImpl implements GameController {
         newGameState.setTotalScore(totalScore);
         gameService.setGameState(newGameState);
         updateView();
-    }
-
-    private void loadNextValidLevel(int levelNumber, int totalScore) throws LevelNotFoundException{
-        int currentLevel = levelNumber;
-        while(true){
-            try{
-                loadLevel(currentLevel, totalScore);
-                return;
-            } catch(LevelNotFoundException e){
-                throw e;
-            } catch(LevelDAOException e){
-                logger.warn("Skipping invalid level {}", currentLevel, e);
-                GameDialogs.showLevelError(view, "level_"+ currentLevel + ".txt");
-                currentLevel++;
-            }
-        }
     }
 
     // Called after a move confirms the level is completed
@@ -152,7 +171,7 @@ public class GameControllerImpl implements GameController {
         );
 
         try {
-            loadNextValidLevel(nextLevel, updatedTotal);
+            loadLevel(nextLevel, updatedTotal);
         }  catch (LevelDAOException e) {
             // If no more levels to load, win game
             GameDialogs.showVictory(view, updatedTotal);

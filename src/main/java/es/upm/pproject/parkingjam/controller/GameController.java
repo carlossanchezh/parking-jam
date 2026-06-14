@@ -22,4 +22,10 @@ public interface GameController {
 
     // Undoes last movement
     void undoMove();
+
+    // Saves the current game state to disk.
+    void saveGame();
+
+    // Loads a previously saved game state from disk.
+    void loadGame();
 }
