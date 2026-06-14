@@ -71,11 +71,11 @@ public class SaveGameDAO {
                 logger.info("Game saved successfully");
             } catch(IOException e){
                 logger.error("Error saving game", e);
-                throw new SaveGameDAOException("Error saving game");
+                throw new SaveGameDAOException("Error saving game", e);
             }
         } catch(IOException e){
             logger.error("Error creating save directory", e);
-            throw new SaveGameDAOException("Error creating directory to save level");
+            throw new SaveGameDAOException("Error creating directory to save level", e);
         }
     }
 
@@ -90,7 +90,10 @@ public class SaveGameDAO {
             int levelScore = Integer.parseInt(readValue(br, "LEVEL_SCORE"));
             int totalScore = Integer.parseInt(readValue(br, "TOTAL_SCORE"));
             boolean finished = Boolean.parseBoolean(readValue(br, "FINISHED"));
-            br.readLine();
+            String separator = br.readLine();
+            if(separator == null || !separator.isBlank()){
+                throw new SaveGameDAOException("Expected empty line after finished");
+            }
 
             String movesHeader = br.readLine();
             if(!"MOVES".equals(movesHeader)) throw new SaveGameDAOException("Missing MOVES section");
@@ -112,7 +115,7 @@ public class SaveGameDAO {
             return gameState;
         } catch(IOException | NumberFormatException e){
             logger.error("Error loading game", e);
-            throw new SaveGameDAOException("Error loading game");
+            throw new SaveGameDAOException("Error loading game", e);
         }
     }
 
@@ -165,7 +168,7 @@ public class SaveGameDAO {
             try{
                 direction = Direction.valueOf(parts[1]);
             } catch(IllegalArgumentException e){
-                throw new SaveGameDAOException("Invalid direction in move: " + line);
+                throw new SaveGameDAOException("Invalid direction in move: " + line, e);
             }
 
             moves.add(new Move(vehicleId, direction));
@@ -186,10 +189,10 @@ public class SaveGameDAO {
             nRows = Integer.parseInt(dims[0]);
             nCols = Integer.parseInt(dims[1]);
         } catch(NumberFormatException e){
-            throw new SaveGameDAOException("Invalid board dimensions");
+            throw new SaveGameDAOException("Invalid board dimensions", e);
         }
 
-        char rawBoard[][] = new char[nRows][nCols];
+        char[][] rawBoard = new char[nRows][nCols];
         for(int i = 0; i < nRows; i++){
             String row = br.readLine();
             if(row == null) throw new SaveGameDAOException("Missing board row");
