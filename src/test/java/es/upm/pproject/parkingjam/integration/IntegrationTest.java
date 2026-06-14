@@ -21,7 +21,7 @@ import es.upm.pproject.parkingjam.model.services.*;
 
 @Nested
 @DisplayName("Game Integration Tests")
-public class IntegrationTest {
+class IntegrationTest {
 
     private LevelDAO levelDAO;
     private GameService gameService;
@@ -219,10 +219,11 @@ public class IntegrationTest {
         List<Position> initialPositionsF = vehicleF.getPositions();
 
         // Save game
-        saveGameDAO.saveGame(gameState);
+        Path saveFile = saveDir.resolve("savegame.txt");
+        saveGameDAO.saveGame(gameState,  saveFile);
 
         // Load saved game
-        GameState loadedState = saveGameDAO.loadGame();
+        GameState loadedState = saveGameDAO.loadGame(saveFile);
         gameService.setGameState(loadedState);
 
         // Verify loaded state matches the state after moves

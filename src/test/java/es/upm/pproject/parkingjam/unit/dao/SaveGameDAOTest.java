@@ -18,7 +18,7 @@ import es.upm.pproject.parkingjam.model.exceptions.SaveGameDAOException;
 
 @Nested
 @DisplayName("SaveGameDAO tests")
-public class SaveGameDAOTest {
+class SaveGameDAOTest {
 
     private SaveGameDAO saveGameDAO;
     private Path saveDir;
@@ -95,23 +95,25 @@ public class SaveGameDAOTest {
     @Test
     @DisplayName("SaveGameDAOTest_02: should save game successfully")
     void testSaveGame() throws SaveGameDAOException {
-        saveGameDAO.saveGame(gameState);
         Path saveFile = saveDir.resolve("savegame.txt");
+        saveGameDAO.saveGame(gameState, saveFile);
         assertTrue(Files.exists(saveFile));
     }
 
     @Test
     @DisplayName("SaveGameDAOTest_03: should throw SaveGameDAOException when saving null GameState")
     void testSaveNullGameState() {
-        assertThrows(SaveGameDAOException.class, () -> saveGameDAO.saveGame(null));
+        Path saveFile = saveDir.resolve("savegame.txt");
+        assertThrows(SaveGameDAOException.class, () -> saveGameDAO.saveGame(null,  saveFile));
     }
 
     @Test
     @DisplayName("SaveGameDAOTest_04: should load game successfully")
     void testLoadGame() throws SaveGameDAOException {
-        saveGameDAO.saveGame(gameState);
+        Path saveFile = saveDir.resolve("savegame.txt");
+        saveGameDAO.saveGame(gameState,  saveFile);
 
-        GameState loadedState = saveGameDAO.loadGame();
+        GameState loadedState = saveGameDAO.loadGame(saveFile);
 
         assertNotNull(loadedState);
         assertEquals(gameState.getCurrentLevel(), loadedState.getCurrentLevel());
@@ -125,18 +127,20 @@ public class SaveGameDAOTest {
     @Test
     @DisplayName("SaveGameDAOTest_05: should throw SaveGameDAOException when loading from non-existent file")
     void testLoadNonExistentFile() {
-        assertThrows(SaveGameDAOException.class, () -> saveGameDAO.loadGame());
+        Path saveFile = saveDir.resolve("savegame.txt");
+        assertThrows(SaveGameDAOException.class, () -> saveGameDAO.loadGame(saveFile));
     }
 
     @Test
     @DisplayName("SaveGameDAOTest_06: should save and load game with empty movement history")
     void testSaveAndLoadEmptyHistory() throws SaveGameDAOException {
+        Path saveFile = saveDir.resolve("savegame.txt");
         GameState emptyHistoryState = new GameState(board, 1, "Level 1");
         emptyHistoryState.setLevelScore(5);
         emptyHistoryState.setTotalScore(10);
 
-        saveGameDAO.saveGame(emptyHistoryState);
-        GameState loadedState = saveGameDAO.loadGame();
+        saveGameDAO.saveGame(emptyHistoryState, saveFile);
+        GameState loadedState = saveGameDAO.loadGame(saveFile);
 
         assertEquals(0, loadedState.getMovementHistory().size());
         assertEquals(5, loadedState.getLevelScore());
@@ -146,12 +150,14 @@ public class SaveGameDAOTest {
     @Test
     @DisplayName("SaveGameDAOTest_07: should save and load game with multiple moves")
     void testSaveAndLoadWithMultipleMoves() throws SaveGameDAOException {
+        Path saveFile = saveDir.resolve("savegame.txt");
+
         gameState.addMovement(new Move('A', Direction.WEST));
         gameState.addMovement(new Move('B', Direction.SOUTH));
         gameState.addMovement(new Move('C', Direction.NORTH));
 
-        saveGameDAO.saveGame(gameState);
-        GameState loadedState = saveGameDAO.loadGame();
+        saveGameDAO.saveGame(gameState,  saveFile);
+        GameState loadedState = saveGameDAO.loadGame(saveFile);
 
         assertEquals(5, loadedState.getMovementHistory().size());
     }
@@ -159,8 +165,9 @@ public class SaveGameDAOTest {
     @Test
     @DisplayName("SaveGameDAOTest_08: should preserve board details after save and load")
     void testPreserveBoardDetails() throws SaveGameDAOException {
-        saveGameDAO.saveGame(gameState);
-        GameState loadedState = saveGameDAO.loadGame();
+        Path saveFile = saveDir.resolve("savegame.txt");
+        saveGameDAO.saveGame(gameState,  saveFile);
+        GameState loadedState = saveGameDAO.loadGame(saveFile);
 
         Board originalBoard = gameState.getBoard();
         Board loadedBoard = loadedState.getBoard();
@@ -175,14 +182,15 @@ public class SaveGameDAOTest {
     @Test
     @DisplayName("SaveGameDAOTest_09: should overwrite existing save file")
     void testOverwriteSaveFile() throws SaveGameDAOException {
-        saveGameDAO.saveGame(gameState);
+        Path saveFile = saveDir.resolve("savegame.txt");
+        saveGameDAO.saveGame(gameState, saveFile);
 
         gameState.setLevelScore(30);
         gameState.setTotalScore(200);
 
-        saveGameDAO.saveGame(gameState);
+        saveGameDAO.saveGame(gameState,  saveFile);
 
-        GameState loadedState = saveGameDAO.loadGame();
+        GameState loadedState = saveGameDAO.loadGame(saveFile);
         assertEquals(30, loadedState.getLevelScore());
         assertEquals(200, loadedState.getTotalScore());
     }
@@ -190,10 +198,11 @@ public class SaveGameDAOTest {
     @Test
     @DisplayName("SaveGameDAOTest_10: should load saved game with finished flag set to true")
     void testSaveAndLoadFinishedTrue() throws SaveGameDAOException {
+        Path saveFile = saveDir.resolve("savegame.txt");
         gameState.setFinished(true);
-        saveGameDAO.saveGame(gameState);
+        saveGameDAO.saveGame(gameState, saveFile);
 
-        GameState loadedState = saveGameDAO.loadGame();
+        GameState loadedState = saveGameDAO.loadGame(saveFile);
 
         assertTrue(loadedState.isFinished());
     }
@@ -201,10 +210,11 @@ public class SaveGameDAOTest {
     @Test
     @DisplayName("SaveGameDAOTest_11: should load saved game with finished flag set to false")
     void testSaveAndLoadFinishedFalse() throws SaveGameDAOException {
+        Path saveFile = saveDir.resolve("savegame.txt");
         gameState.setFinished(false);
-        saveGameDAO.saveGame(gameState);
+        saveGameDAO.saveGame(gameState, saveFile);
 
-        GameState loadedState = saveGameDAO.loadGame();
+        GameState loadedState = saveGameDAO.loadGame(saveFile);
 
         assertFalse(loadedState.isFinished());
     }
