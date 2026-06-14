@@ -4,9 +4,12 @@ import es.upm.pproject.parkingjam.model.dao.LevelDAO;
 import es.upm.pproject.parkingjam.model.dao.SaveGameDAO;
 import es.upm.pproject.parkingjam.model.dto.*;
 import es.upm.pproject.parkingjam.model.exceptions.LevelDAOException;
+import es.upm.pproject.parkingjam.model.exceptions.LevelNotFoundException;
 import es.upm.pproject.parkingjam.model.exceptions.SaveGameDAOException;
 import es.upm.pproject.parkingjam.model.services.GameService;
 import es.upm.pproject.parkingjam.view.*;
+import java.io.File;
+import javax.swing.JFileChooser;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +62,7 @@ public class GameControllerImpl implements GameController {
     public void newGame() {
         logger.info("Starting new game");
         try {
-            loadLevel(1, 0);
+            loadNextValidLevel(1, 0);
         } catch (LevelDAOException e) {
             logger.error("Error loading first level", e);
             GameDialogs.showLevelError(view, "level_1.txt");
@@ -110,13 +113,17 @@ public class GameControllerImpl implements GameController {
         }
     }
 
-
-    // Saves the current game progress to disk.
-    // Called by the Save Game menu item / shortcut in MainView.
     @Override
-    public void saveGame() {
+    public void saveGame(){
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save game");
+
+        int result = fileChooser.showSaveDialog(view);
+        if(result != JFileChooser.APPROVE_OPTION) return;
+
+        File selectedFile = fileChooser.getSelectedFile();
         try {
-            saveGameDAO.saveGame(gameService.getGameState());
+            saveGameDAO.saveGame(gameService.getGameState(), selectedFile.toPath());
             logger.info("Game saved successfully");
             GameDialogs.showSaveSuccess(view);
         } catch (SaveGameDAOException e) {
@@ -125,13 +132,17 @@ public class GameControllerImpl implements GameController {
         }
     }
 
-
-    // Loads a previously saved game and refreshes the view.
-    // Called by the Load Game menu item in MainView.
     @Override
-    public void loadGame() {
+    public void loadGame(){
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Load game");
+
+        int result = fileChooser.showOpenDialog(view);
+        if(result != JFileChooser.APPROVE_OPTION) return;
+
+        File selectedFile = fileChooser.getSelectedFile();
         try {
-            GameState loadedState = saveGameDAO.loadGame();
+            GameState loadedState = saveGameDAO.loadGame(selectedFile.toPath());
             gameService.setGameState(loadedState);
             logger.info("Game loaded successfully");
             updateView();
@@ -156,6 +167,22 @@ public class GameControllerImpl implements GameController {
         updateView();
     }
 
+    private void loadNextValidLevel(int levelNumber, int totalScore) throws LevelNotFoundException{
+        int currentLevel = levelNumber;
+        while(true){
+            try {
+                loadLevel(currentLevel, totalScore);
+                return;
+            } catch (LevelNotFoundException e) {
+                throw e;
+            } catch (LevelDAOException e){
+                logger.warn("Skipping invalid level {}", currentLevel, e);
+                GameDialogs.showLevelError(view, "level_" + currentLevel + ".txt");
+                currentLevel++;
+            }
+        }
+    }
+
     // Called after a move confirms the level is completed
     private void onLevelCompleted() {
         gameService.finishLevel();
@@ -171,8 +198,8 @@ public class GameControllerImpl implements GameController {
         );
 
         try {
-            loadLevel(nextLevel, updatedTotal);
-        }  catch (LevelDAOException e) {
+            loadNextValidLevel(nextLevel, updatedTotal);
+        }  catch (LevelNotFoundException e) {
             // If no more levels to load, win game
             GameDialogs.showVictory(view, updatedTotal);
             logger.info("No more levels to load. Game finished with score: {}", updatedTotal);

@@ -11,7 +11,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,67 +19,64 @@ import es.upm.pproject.parkingjam.model.exceptions.SaveGameDAOException;
 
 public class SaveGameDAO {
     private static final Logger logger = LoggerFactory.getLogger(SaveGameDAO.class);
-    private static final String SAVE_DIRECTORY = "saves";
-    private static final String SAVE_FILE = "savegame.txt";
 
-    public void saveGame(GameState gameState) throws SaveGameDAOException{
+    public void saveGame(GameState gameState, Path saveFile) throws SaveGameDAOException{
         if(gameState == null) throw new SaveGameDAOException("Game state cannot be null");
-        
-        Path directory = Paths.get(SAVE_DIRECTORY);
-        Path saveFile = directory.resolve(SAVE_FILE);
+        if(saveFile == null) throw new SaveGameDAOException("Save file cannot be null");
 
         logger.info("Saving game in {}", saveFile);
-
-        try{
-            Files.createDirectories(directory);
-            try(BufferedWriter bw = Files.newBufferedWriter(saveFile)){
-                bw.write("CURRENT_LEVEL=" + gameState.getCurrentLevel());
-                bw.newLine();
-
-                bw.write("CURRENT_LEVEL_NAME=" + gameState.getCurrentLevelName());
-                bw.newLine();
-
-                bw.write("LEVEL_SCORE=" + gameState.getLevelScore());
-                bw.newLine();
-
-                bw.write("TOTAL_SCORE=" + gameState.getTotalScore());
-                bw.newLine();
-
-                bw.write("FINISHED=" + gameState.isFinished());
-                bw.newLine();
-                bw.newLine();
-
-                bw.write("MOVES");
-                bw.newLine();
-                for(Move move : gameState.getMovementHistory()){
-                    bw.write(move.getVehicleId()+ " " +move.getDirection());
-                    bw.newLine();
-                }
-                bw.newLine();
-
-                bw.write("BOARD");
-                bw.newLine();
-                char[][] boardMatrix = boardToChar(gameState.getBoard());
-                bw.write(gameState.getBoard().getRows()+ " " +gameState.getBoard().getColumns());
-                bw.newLine();
-                for(int i = 0; i < boardMatrix.length; i++){
-                    bw.write(new String(boardMatrix[i]));
-                    bw.newLine();
-                }
-
-                logger.info("Game saved successfully");
-            } catch(IOException e){
-                logger.error("Error saving game", e);
-                throw new SaveGameDAOException("Error saving game", e);
+        try {
+            Path parent = saveFile.getParent();
+            if(parent != null){
+                Files.createDirectories(parent);
             }
-        } catch(IOException e){
-            logger.error("Error creating save directory", e);
-            throw new SaveGameDAOException("Error creating directory to save level", e);
+            try(BufferedWriter bw = Files.newBufferedWriter(saveFile)){
+                writeGameState(gameState, bw);
+            }
+            logger.info("Game saved successfully");
+        } catch (IOException e) {
+            logger.error("Error saving game", e);
+            throw new SaveGameDAOException("Error saving game", e);
+        }
+    }
+    private void writeGameState(GameState gameState, BufferedWriter bw) throws IOException{
+        bw.write("CURRENT_LEVEL=" + gameState.getCurrentLevel());
+        bw.newLine();
+
+        bw.write("CURRENT_LEVEL_NAME=" + gameState.getCurrentLevelName());
+        bw.newLine();
+
+        bw.write("LEVEL_SCORE=" + gameState.getLevelScore());
+        bw.newLine();
+
+        bw.write("TOTAL_SCORE=" + gameState.getTotalScore());
+        bw.newLine();
+
+        bw.write("FINISHED=" + gameState.isFinished());
+        bw.newLine();
+        bw.newLine();
+
+        bw.write("MOVES");
+        bw.newLine();
+        for(Move move : gameState.getMovementHistory()){
+            bw.write(move.getVehicleId()+ " " +move.getDirection());
+            bw.newLine();
+        }
+        bw.newLine();
+
+        bw.write("BOARD");
+        bw.newLine();
+        char[][] boardMatrix = boardToChar(gameState.getBoard());
+        bw.write(gameState.getBoard().getRows()+ " " +gameState.getBoard().getColumns());
+        bw.newLine();
+        for(int i = 0; i < boardMatrix.length; i++){
+            bw.write(new String(boardMatrix[i]));
+            bw.newLine();
         }
     }
 
-    public GameState loadGame() throws SaveGameDAOException{
-        Path saveFile = Paths.get(SAVE_DIRECTORY, SAVE_FILE);
+    public GameState loadGame(Path saveFile) throws SaveGameDAOException{
+        if(saveFile == null) throw new SaveGameDAOException("Save file cannot be null");
         logger.info("Loading game from {}", saveFile);
         if(!Files.exists(saveFile)) throw new SaveGameDAOException("Save file does not exist");
 
@@ -116,7 +112,7 @@ public class SaveGameDAO {
         } catch(IOException | NumberFormatException e){
             logger.error("Error loading game", e);
             throw new SaveGameDAOException("Error loading game", e);
-        }
+        }        
     }
 
     private char[][] boardToChar(Board board){
