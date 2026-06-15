@@ -1,11 +1,7 @@
 package es.upm.pproject.parkingjam.model.dao;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -16,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import es.upm.pproject.parkingjam.model.dto.*;
 import es.upm.pproject.parkingjam.model.exceptions.SaveGameDAOException;
+import es.upm.pproject.parkingjam.model.exceptions.BoardValidationException;
 
 public class SaveGameDAO {
     private static final Logger logger = LoggerFactory.getLogger(SaveGameDAO.class);
@@ -195,147 +192,13 @@ public class SaveGameDAO {
             if(row.length() != nCols) throw new SaveGameDAOException("Invalid board row length");
             rawBoard[i] = row.toCharArray();
         }
-        Board board = buildBoard(rawBoard, nRows, nCols);
-        validateBoard(board);
-        return board;
-    }
-
-
-
-    private Board buildBoard(char[][] rawBoard, int nRows, int nCols) throws SaveGameDAOException{
-        Set<Position> walls = new HashSet<>();
-        Position exit = null;
-        Map<Character, List<Position>> vehiclesPositions = new HashMap<>();
-        List<Position> redCarPositions = new ArrayList<>();
-
-        // Traverse the whole grid
-        for(int i = 0; i < nRows; i++){
-            for(int j = 0; j < nCols; j++){
-                char c = rawBoard[i][j];
-                Position pos = new Position(i, j);
-                exit = processCell(c, pos, walls, exit, redCarPositions, vehiclesPositions); // Call aux function to process the cell
-            }
-        }
-        Map<Character, Vehicle> vehicles = buildVehicles(vehiclesPositions, redCarPositions);
-        return new Board(nRows, nCols, walls, exit, vehicles);
-    }
-
-    // Process a single cell in the grid and update the Board state and elements
-    private Position processCell(char c, Position pos,
-                                 Set<Position> walls,
-                                 Position exit,
-                                 List<Position> redCarPositions,
-                                 Map<Character, List<Position>> vehiclesPositions) throws SaveGameDAOException {
-
-        if(!isValidBoardCharacter(c)) throw new SaveGameDAOException("Invalid character "+c);
-
-        if(c == '+') {
-            walls.add(pos);
-        } else if(c == '@') {
-            if(exit != null) throw new SaveGameDAOException("There must be one exit");
-            exit = pos;
-        } else if(c == '*') {
-            redCarPositions.add(pos);
-        } else if(c >= 'a' && c <= 'z') {
-            vehiclesPositions.computeIfAbsent(c, k -> new ArrayList<>()).add(pos);
-        }
-        return exit;
-    }
-
-
-    // Maps the positions from each vehicleId to a Vehicle
-    private Map<Character, Vehicle> buildVehicles(Map<Character, List<Position>> vehiclesPositions, List<Position> redCarPositions) throws SaveGameDAOException {
-        Map<Character, Vehicle> vehicles = new HashMap<>();
-
-        //RED CAR
-        if(!redCarPositions.isEmpty()){
-            vehicles.put('*', new Vehicle('*', redCarPositions, true, determineOrientation(redCarPositions)));
-        }
-
-        //Normal cars
-        for(Map.Entry<Character, List<Position>> entry : vehiclesPositions.entrySet()){
-            char id = entry.getKey();
-            List<Position> positions = entry.getValue();
-            vehicles.put(id, new Vehicle(id, positions, false, determineOrientation(positions)));
-        }
-        return vehicles;
-    }
-
-
-    // Helper that checks if a character in a .txt file is a valid character
-    private boolean isValidBoardCharacter(char c){
-        return c == '+' || c == '.' || c == '@' || c == '*' || (c >= 'a' && c <= 'z');
-    }
-
-
-    // Helper that returns the orientation os a vehicle in a board
-    private Orientation determineOrientation(List<Position> positions) throws SaveGameDAOException{
-        if(positions == null || positions.size() < 2){
-            throw new SaveGameDAOException("Vehicle must have at least 2 positions");
-        }
-        Position first = positions.get(0);
-        Position second = positions.get(1);
-        if(first.getX() == second.getX()) return Orientation.HORIZONTAL;
-        else if(first.getY() == second.getY()) return Orientation.VERTICAL;
-        else throw new SaveGameDAOException("Orientation invalid");
-    }
-
-
-    // Ensures the board contains the mandatory pieces
-    private void validateBoard(Board board) throws SaveGameDAOException{
-        if(board.getExit() == null){
-            throw new SaveGameDAOException("There must be exactly one exit");
-        }
-        Map<Character, Vehicle> vehicles = board.getVehicles();
-        Vehicle redCar = vehicles.get('*');
-        if(redCar == null){
-            throw new SaveGameDAOException("There must be one red car");
-        }
-        validateRedCar(redCar);
-        for(Vehicle vehicle : vehicles.values()){
-            validateVehicle(vehicle);
-        }
-    }
-
-
-    // Applies the extra rules for the red car (exact size, id, and continuity)
-    private void validateRedCar(Vehicle redCar) throws SaveGameDAOException{
-        if(!redCar.isRedCar()) throw new SaveGameDAOException("Red car vehicle is not marked as red car");
-        if(redCar.getId() != '*') throw new SaveGameDAOException("Red car must have '*' as id");
-
-        List<Position> positions = redCar.getPositions();
-        if(positions.size() != 2) throw new SaveGameDAOException("Red car must occupy 2 cells");
-        Orientation orientation = redCar.getOrientation();
-        if(orientation == null) throw new SaveGameDAOException("Red car must have orientation and be 1x2 or 2x1");
-        validateContinuity(positions, redCar.getId(), orientation);
-    }
-
-
-    // Helper that checks all the vehicles (except the red car) are created according the norms
-    private void validateVehicle(Vehicle vehicle) throws SaveGameDAOException{
-        if(vehicle == null) throw new SaveGameDAOException("Vehicle cannot be null");
-        if(vehicle.isRedCar()) return;
-        if(vehicle.getId() < 'a' || vehicle.getId() > 'z') throw new SaveGameDAOException("Vehicle "+ vehicle.getId() +" wrong identifier");
-        
-        List<Position> positions = vehicle.getPositions();
-        if(positions == null || positions.size() < 2) throw new SaveGameDAOException("Vehicle "+ vehicle.getId() +" must occupy 2 cells");
-        if(vehicle.getOrientation() == null) throw new SaveGameDAOException("Vehicle "+ vehicle.getId() +" must have orientation");
-
-        validateContinuity(positions, vehicle.getId(), vehicle.getOrientation());
-    }
-
-
-    // Helper that checks positions assigned to the same car are adjacent (no holes in between)
-    private void validateContinuity(List<Position> positions, char id, Orientation orientation) throws SaveGameDAOException{
-        List<Integer> values = new ArrayList<>();
-        for(Position position : positions){
-            if(orientation == Orientation.HORIZONTAL) values.add(position.getY());
-            else if(orientation == Orientation.VERTICAL) values.add(position.getX());
-            else throw new SaveGameDAOException("Vehicle "+ id +" invalid orientation");
-        }
-        values.sort(Integer::compareTo);
-        for(int i = 1; i < values.size(); i++){
-            if(values.get(i) != values.get(i-1)+1) throw new SaveGameDAOException("Vehicle "+ id +" has holes");
+        try {
+            BoardValidation boardValidation = new BoardValidation();
+            Board board = boardValidation.buildBoard(rawBoard, nRows, nCols);
+            boardValidation.validateBoard(board);
+            return board;
+        } catch (BoardValidationException e) {
+            throw new SaveGameDAOException(e.getMessage(), e);
         }
     }
 }
