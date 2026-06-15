@@ -286,8 +286,8 @@ public class BoardPanel extends JPanel {
     //   size 4        -> bus
     //   size 5+       -> truck
     private void drawCar(Graphics2D g, Vehicle vehicle) {
-        int[] bounds = boundingBox(vehicle);
-        int minRow = bounds[0], minCol = bounds[1], maxRow = bounds[2], maxCol = bounds[3];
+        BoundingBox bounds = boundingBox(vehicle);
+        int minRow = bounds.minRow(), minCol = bounds.minCol(), maxRow = bounds.maxRow(), maxCol = bounds.maxCol();
 
         int x = minCol * CELL_SIZE;
         int y = minRow * CELL_SIZE;
@@ -297,8 +297,8 @@ public class BoardPanel extends JPanel {
         Color base = vehicle.isRedCar() ? RED_CAR_COLOR : getVehicleColor(vehicle.getId());
 
         int m = 6;
-        double bx = x + m;
-        double by = y + m;
+        double bx = x + (double) m;
+        double by = y + (double) m;
         double bw = w - 2.0 * m;
         double bh = h - 2.0 * m;
 
@@ -595,7 +595,7 @@ public class BoardPanel extends JPanel {
     }
 
     // Computes the [minRow, minCol, maxRow, maxCol] bounding box occupied by a vehicle
-    private int[] boundingBox(Vehicle vehicle) {
+    private BoundingBox boundingBox(Vehicle vehicle) {
         int minRow = Integer.MAX_VALUE, minCol = Integer.MAX_VALUE;
         int maxRow = Integer.MIN_VALUE, maxCol = Integer.MIN_VALUE;
         for (Position p : vehicle.getPositions()) {
@@ -604,7 +604,27 @@ public class BoardPanel extends JPanel {
             minCol = Math.min(minCol, p.getY());
             maxCol = Math.max(maxCol, p.getY());
         }
-        return new int[]{minRow, minCol, maxRow, maxCol};
+        return new BoundingBox(minRow, minCol, maxRow, maxCol);
+    }
+
+    // Simple value holder for a vehicle's bounding box, avoiding constant-index array access
+    private static final class BoundingBox {
+        private final int minRow;
+        private final int minCol;
+        private final int maxRow;
+        private final int maxCol;
+
+        private BoundingBox(int minRow, int minCol, int maxRow, int maxCol) {
+            this.minRow = minRow;
+            this.minCol = minCol;
+            this.maxRow = maxRow;
+            this.maxCol = maxCol;
+        }
+
+        int minRow() { return minRow; }
+        int minCol() { return minCol; }
+        int maxRow() { return maxRow; }
+        int maxCol() { return maxCol; }
     }
 
     // Assigns each vehicle a color from the palette the first time it is drawn
