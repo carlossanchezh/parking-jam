@@ -203,8 +203,21 @@ public class MainView extends JFrame {
         JButton undoButton = new JButton("Undo (Ctrl+Z)");
         undoButton.setFocusable(false);
         undoButton.setForeground(TEXT_COLOR);
+        undoButton.setOpaque(true);
         undoButton.setBackground(ACCENT_COLOR);
         undoButton.setBorder(BorderFactory.createEmptyBorder(4, 12, 4, 12));
+
+        undoButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                undoButton.setBackground(ACCENT_COLOR.brighter());
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                undoButton.setBackground(ACCENT_COLOR);
+            }
+        });
 
         undoButton.addActionListener(e -> {
             if (controller != null) {
