@@ -199,57 +199,7 @@ class IntegrationTest {
     }
 
     @Test
-    @DisplayName("IntegrationTest_05: Save and load game after multiple moves then do undo")
-    void testSaveAndLoadAfterMultipleMoves() throws SaveGameDAOException, LevelDAOException {
-
-        Vehicle vehicleD = board.getVehicles().get('d');
-        Vehicle vehicleE = board.getVehicles().get('e');
-        Vehicle vehicleF = board.getVehicles().get('f');
-
-        // Make moves
-        gameService.move('d', Direction.SOUTH);
-        gameService.move('e', Direction.NORTH);
-        gameService.move('f', Direction.EAST);
-
-        assertEquals(3, gameState.getLevelScore());
-        assertEquals(3, gameState.getMovementHistory().size());
-
-        List<Position> initialPositionsD = vehicleD.getPositions();
-        List<Position> initialPositionsE = vehicleE.getPositions();
-        List<Position> initialPositionsF = vehicleF.getPositions();
-
-        // Save game
-        Path saveFile = saveDir.resolve("savegame.txt");
-        saveGameDAO.saveGame(gameState,  saveFile);
-
-        // Load saved game
-        GameState loadedState = saveGameDAO.loadGame(saveFile);
-        gameService.setGameState(loadedState);
-
-        // Verify loaded state matches the state after moves
-        assertEquals(3, loadedState.getLevelScore());
-        assertEquals(3, loadedState.getMovementHistory().size());
-        assertEquals(1, loadedState.getCurrentLevel());
-        assertEquals("Initial level", loadedState.getCurrentLevelName());
-
-        // Verify board positions are preserved
-        Vehicle loadedVehicleD = loadedState.getBoard().getVehicles().get('d');
-        Vehicle loadedVehicleE = loadedState.getBoard().getVehicles().get('e');
-        Vehicle loadedVehicleF = loadedState.getBoard().getVehicles().get('f');
-
-        assertEquals(initialPositionsD, loadedVehicleD.getPositions());
-        assertEquals(initialPositionsE, loadedVehicleE.getPositions());
-        assertEquals(initialPositionsF, loadedVehicleF.getPositions());
-
-        // Undo
-        boolean undone = gameService.undoLastMovement();
-        assertTrue(undone);
-        assertEquals(2, gameService.getGameState().getLevelScore());
-        assertEquals(2, gameService.getGameState().getMovementHistory().size());
-    }
-
-    @Test
-    @DisplayName("IntegrationTest_06: Complete the level moving all necessary cars and red car towards exit and verify victory detection, after finishing initial level load level_2 and move")
+    @DisplayName("IntegrationTest_05: Complete the level moving all necessary cars and red car towards exit and verify victory detection, after finishing initial level load level_2 and move")
     void testRedCarVictory() throws LevelDAOException {
         // Get vehicle RED
         Vehicle vehicleRED = board.getVehicles().get('*');
@@ -365,7 +315,201 @@ class IntegrationTest {
     }
 
     @Test
-    @DisplayName("IntegrationTest_07: Restart level resets board, score and move history after multiple moves")
+    @DisplayName("IntegrationTest_06: Save and load game after multiple moves then do undo")
+    void testSaveAndLoadAfterMultipleMoves() throws SaveGameDAOException, LevelDAOException {
+
+        Vehicle vehicleD = board.getVehicles().get('d');
+        Vehicle vehicleE = board.getVehicles().get('e');
+        Vehicle vehicleF = board.getVehicles().get('f');
+
+        // Make moves
+        gameService.move('d', Direction.SOUTH);
+        gameService.move('e', Direction.NORTH);
+        gameService.move('f', Direction.EAST);
+
+        assertEquals(3, gameState.getLevelScore());
+        assertEquals(3, gameState.getMovementHistory().size());
+
+        List<Position> initialPositionsD = vehicleD.getPositions();
+        List<Position> initialPositionsE = vehicleE.getPositions();
+        List<Position> initialPositionsF = vehicleF.getPositions();
+
+        // Save game
+        Path saveFile = saveDir.resolve("savegame.txt");
+        saveGameDAO.saveGame(gameState,  saveFile);
+
+        // Load saved game
+        GameState loadedState = saveGameDAO.loadGame(saveFile);
+        gameService.setGameState(loadedState);
+
+        // Verify loaded state matches the state after moves
+        assertEquals(3, loadedState.getLevelScore());
+        assertEquals(3, loadedState.getMovementHistory().size());
+        assertEquals(1, loadedState.getCurrentLevel());
+        assertEquals("Initial level", loadedState.getCurrentLevelName());
+
+        // Verify board positions are preserved
+        Vehicle loadedVehicleD = loadedState.getBoard().getVehicles().get('d');
+        Vehicle loadedVehicleE = loadedState.getBoard().getVehicles().get('e');
+        Vehicle loadedVehicleF = loadedState.getBoard().getVehicles().get('f');
+
+        assertEquals(initialPositionsD, loadedVehicleD.getPositions());
+        assertEquals(initialPositionsE, loadedVehicleE.getPositions());
+        assertEquals(initialPositionsF, loadedVehicleF.getPositions());
+
+        // Undo
+        boolean undone = gameService.undoLastMovement();
+        assertTrue(undone);
+        assertEquals(2, gameService.getGameState().getLevelScore());
+        assertEquals(2, gameService.getGameState().getMovementHistory().size());
+    }
+
+    @Test
+    @DisplayName("IntegrationTest_07: Two parallel independent save files, load and play each without interference")
+    void testTwoParallelIndependentGames() throws SaveGameDAOException, LevelDAOException {
+
+        Path saveFile1 = saveDir.resolve("savegame_1.txt");
+        Path saveFile2 = saveDir.resolve("savegame_2.txt");
+
+        // Load level 1 for save 1
+        Level level1 = levelDAO.loadLevel("level_1.txt");
+        GameState gameA = new GameState(level1.getBoard(), 1, level1.getName());
+        gameService.setGameState(gameA);
+
+        // Move vehicle D
+        assertTrue(gameService.move('d', Direction.SOUTH));
+        assertEquals(1, gameService.getGameState().getLevelScore());
+        assertEquals(1, gameService.getGameState().getMovementHistory().size());
+        assertEquals('d', gameService.getGameState().getMovementHistory().get(0).getVehicleId());
+
+        // Save state 1
+        saveGameDAO.saveGame(gameService.getGameState(), saveFile1);
+
+        // Load level 1 for save 2
+        Level level1again = levelDAO.loadLevel("level_1.txt");
+        GameState gameB = new GameState(level1again.getBoard(), 1, level1again.getName());
+        gameService.setGameState(gameB);
+
+        // Move vehicle F
+        assertTrue(gameService.move('f', Direction.EAST));
+        assertEquals(1, gameService.getGameState().getLevelScore());
+        assertEquals(1, gameService.getGameState().getMovementHistory().size());
+        assertEquals('f', gameService.getGameState().getMovementHistory().get(0).getVehicleId());
+
+        // Save state 2
+        saveGameDAO.saveGame(gameService.getGameState(), saveFile2);
+
+        // Verify states are independent
+
+        // Load state 1
+        GameState loadedState1 = saveGameDAO.loadGame(saveFile1);
+        gameService.setGameState(loadedState1);
+
+        assertEquals(1, loadedState1.getLevelScore());
+        assertEquals(1, loadedState1.getMovementHistory().size());
+        assertEquals('d', loadedState1.getMovementHistory().get(0).getVehicleId());
+
+        // Move vehicle E
+        assertTrue(gameService.move('e', Direction.NORTH));
+        assertEquals(2, gameService.getGameState().getLevelScore());
+        assertEquals(2, loadedState1.getMovementHistory().size());
+        assertEquals('d', loadedState1.getMovementHistory().get(0).getVehicleId());
+        assertEquals('e', loadedState1.getMovementHistory().get(1).getVehicleId());
+
+        // Load state 2
+        GameState loadedState2 = saveGameDAO.loadGame(saveFile2);
+        gameService.setGameState(loadedState2);
+
+        assertEquals(1, loadedState2.getLevelScore());
+        assertEquals(1, loadedState2.getMovementHistory().size());
+        assertEquals('f', loadedState2.getMovementHistory().get(0).getVehicleId());
+
+        // Move vehicle F
+        assertTrue(gameService.move('f', Direction.WEST));
+        assertEquals(2, gameService.getGameState().getLevelScore());
+        assertEquals(2, loadedState2.getMovementHistory().size());
+        assertEquals('f', loadedState2.getMovementHistory().get(0).getVehicleId());
+        assertEquals('f', loadedState2.getMovementHistory().get(1).getVehicleId());
+
+        // Load state 1
+        GameState reloadedState1 = saveGameDAO.loadGame(saveFile1);
+        gameService.setGameState(reloadedState1);
+
+        assertEquals(1, reloadedState1.getLevelScore());
+        assertEquals(1, reloadedState1.getMovementHistory().size());
+        assertEquals('d', reloadedState1.getMovementHistory().get(0).getVehicleId());
+    }
+
+    @Test
+    @DisplayName("IntegrationTest_08: Create multiple save files for the same game")
+    void testMultipleSaveFilesForTheSameGame() throws SaveGameDAOException, LevelDAOException {
+
+        //Create 2 states
+        Path saveFile1 = saveDir.resolve("savegame1.txt");
+        Path saveFile2 = saveDir.resolve("savegame2.txt");
+
+        // Load level 1
+        Level level1 = levelDAO.loadLevel("level_1.txt");
+        GameState state1 = new GameState(level1.getBoard(), 1, level1.getName());
+        gameService.setGameState(state1);
+
+        // Move vehicle D
+        assertTrue(gameService.move('d', Direction.SOUTH));
+        assertEquals(1, gameService.getGameState().getLevelScore());
+        assertEquals(1, gameService.getGameState().getMovementHistory().size());
+        assertEquals('d', gameService.getGameState().getMovementHistory().get(0).getVehicleId());
+
+        // Save state 1
+        saveGameDAO.saveGame(gameService.getGameState(), saveFile1);
+
+        // Move vehicle F
+        assertTrue(gameService.move('f', Direction.EAST));
+        assertEquals(2, gameService.getGameState().getLevelScore());
+        assertEquals(2, gameService.getGameState().getMovementHistory().size());
+
+        // Save state 2
+        saveGameDAO.saveGame(gameService.getGameState(), saveFile2);
+
+        // Verify states are independent
+
+        // Load state 1
+        GameState loadedState1 = saveGameDAO.loadGame(saveFile1);
+        gameService.setGameState(loadedState1);
+
+        assertEquals(1, gameService.getGameState().getCurrentLevel());
+        assertEquals(1, gameService.getGameState().getLevelScore());
+        assertEquals(1, gameService.getGameState().getMovementHistory().size());
+        // Verify first move is vehicle d
+        assertEquals('d', gameService.getGameState().getMovementHistory().get(0).getVehicleId());
+
+        // Move vehicle E
+        assertTrue(gameService.move('e', Direction.NORTH));
+        assertEquals(2, gameService.getGameState().getLevelScore());
+        assertEquals(2, gameService.getGameState().getMovementHistory().size());
+
+        // Load state 2
+        GameState loadedState2 = saveGameDAO.loadGame(saveFile2);
+        gameService.setGameState(loadedState2);
+
+        assertEquals(1, gameService.getGameState().getCurrentLevel());
+        assertEquals(2, gameService.getGameState().getLevelScore());
+        assertEquals(2, gameService.getGameState().getMovementHistory().size());
+        // Verify first move is vehicle d and second move is vehicle f
+        assertEquals('d', gameService.getGameState().getMovementHistory().get(0).getVehicleId());
+        assertEquals('f', gameService.getGameState().getMovementHistory().get(1).getVehicleId());
+
+        //Load state 1
+        GameState reloadedState1 = saveGameDAO.loadGame(saveFile1);
+        gameService.setGameState(reloadedState1);
+
+        assertEquals(1, gameService.getGameState().getCurrentLevel());
+        assertEquals(1, gameService.getGameState().getLevelScore());
+        assertEquals(1, gameService.getGameState().getMovementHistory().size());
+        assertEquals('d', gameService.getGameState().getMovementHistory().get(0).getVehicleId());
+    }
+
+    @Test
+    @DisplayName("IntegrationTest_09: Restart level resets board, score and move history after multiple moves")
     void testRestartLevel() throws LevelDAOException {
 
         // Get some vehicles
