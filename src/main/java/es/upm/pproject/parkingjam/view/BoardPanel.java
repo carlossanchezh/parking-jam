@@ -83,6 +83,8 @@ public class BoardPanel extends JPanel {
         setBackground(BOARD_BACKGROUND);
         setPreferredSize(new Dimension(480, 480));
         setupMouseListeners();
+        setFocusable(true); // Allow receiving key events
+        setupKeyBindings();
     }
 
     public void setController(GameController controller) {
@@ -96,6 +98,50 @@ public class BoardPanel extends JPanel {
         }
         revalidate();
         repaint();
+    }
+
+    // Key listeners
+    private void setupKeyBindings() {
+        InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = getActionMap();
+
+        inputMap.put(KeyStroke.getKeyStroke("LEFT"), "moveLeft");
+        inputMap.put(KeyStroke.getKeyStroke("RIGHT"), "moveRight");
+        inputMap.put(KeyStroke.getKeyStroke("UP"), "moveUp");
+        inputMap.put(KeyStroke.getKeyStroke("DOWN"), "moveDown");
+
+        actionMap.put("moveLeft", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                moveSelectedVehicle(Direction.WEST);
+            }
+        });
+        actionMap.put("moveRight", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                moveSelectedVehicle(Direction.EAST);
+            }
+        });
+        actionMap.put("moveUp", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                moveSelectedVehicle(Direction.NORTH);
+            }
+        });
+        actionMap.put("moveDown", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                moveSelectedVehicle(Direction.SOUTH);
+            }
+        });
+    }
+
+    // Helper
+    private void moveSelectedVehicle(Direction direction) {
+        if (controller == null || !isVehicle(selectedVehicleId)) {
+            return;
+        }
+        controller.move(selectedVehicleId, direction);
     }
 
     // Mouse listener
