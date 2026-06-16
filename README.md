@@ -4,7 +4,7 @@
 Java-based implementation of the famous puzzle game in which the objective is to move vehicles to allow the red car to exit the parking area.
 
 <p align="center">
-  <img src="images/parking-jam.png" alt="Parking Jam" width="200" />
+  <img src="images/parking-jam.png" alt="Parking Jam" width="300" />
 </p>
 
 
