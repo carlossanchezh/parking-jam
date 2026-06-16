@@ -10,7 +10,7 @@ import es.upm.pproject.parkingjam.model.dto.Direction;
 
 @Nested
 @DisplayName("Direction tests")
-public class DirectionTest {
+class DirectionTest {
 
     @Test
     @DisplayName("DirectionTest_01: should return opposite direction correctly for NORTH")

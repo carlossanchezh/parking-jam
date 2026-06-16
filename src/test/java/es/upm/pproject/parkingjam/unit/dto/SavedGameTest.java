@@ -13,7 +13,7 @@ import es.upm.pproject.parkingjam.model.dto.*;
 
 @Nested
 @DisplayName("SavedGame tests")
-public class SavedGameTest {
+class SavedGameTest {
 
     private Board board;
     private GameState gameState;

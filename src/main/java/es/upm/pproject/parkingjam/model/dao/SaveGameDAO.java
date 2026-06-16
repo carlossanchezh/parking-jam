@@ -33,7 +33,6 @@ public class SaveGameDAO {
             }
             logger.info("Game saved successfully");
         } catch (IOException e) {
-            logger.error("Error saving game", e);
             throw new SaveGameDAOException("Error saving game", e);
         }
     }
@@ -110,7 +109,6 @@ public class SaveGameDAO {
             logger.info("Game loaded successfully");
             return gameState;
         } catch(IOException | NumberFormatException e){
-            logger.error("Error loading game", e);
             throw new SaveGameDAOException("Error loading game", e);
         }        
     }

@@ -250,6 +250,8 @@ class VehicleTest {
 
         List<Position> getPositions = vehicle.getPositions();
 
-        assertThrows(UnsupportedOperationException.class, () -> getPositions.add(new Position(99, 99)));
+        Position position = new Position(99, 99);
+
+        assertThrows(UnsupportedOperationException.class, () -> getPositions.add(position));
     }
 }

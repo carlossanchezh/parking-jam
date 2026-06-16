@@ -33,10 +33,8 @@ public class LevelDAO {
             return level;
 
         } catch(LevelFormatException e){
-            logger.warn("Level '{}': {}", fileName, e.getMessage());
             throw new LevelDAOException("Invalid level: " + fileName, e);
         } catch(IOException e){
-            logger.error("Error in reading level'{}'", fileName, e);
             throw new LevelDAOException("Error in reading level:" + fileName, e);
         }
     }

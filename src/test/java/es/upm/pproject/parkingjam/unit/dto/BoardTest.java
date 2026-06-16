@@ -279,17 +279,18 @@ class BoardTest {
     @Test
     @DisplayName("BoardTest_25: should return unmodifiable copy when getWalls is called")
     void testGetWallsReturnsUnmodifiable() {
-        Set<Position> walls = board.getWalls();
+        Set<Position> wallSet = board.getWalls();
+        Position position = new Position(99, 99);
 
-        assertThrows(UnsupportedOperationException.class, () -> walls.add(new Position(99, 99)));
+        assertThrows(UnsupportedOperationException.class, () -> wallSet.add(position));
     }
 
     @Test
     @DisplayName("BoardTest_26: should return unmodifiable copy when getVehicles is called")
     void testGetVehiclesReturnsUnmodifiable() {
-        Map<Character, Vehicle> vehicles = board.getVehicles();
+        Map<Character, Vehicle> vehicleSet = board.getVehicles();
 
-        assertThrows(UnsupportedOperationException.class, () -> vehicles.put('Z', null));
+        assertThrows(UnsupportedOperationException.class, () -> vehicleSet.put('Z', null));
     }
 
 }

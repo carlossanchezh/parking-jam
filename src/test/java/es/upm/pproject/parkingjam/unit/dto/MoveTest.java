@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 @Nested
 @DisplayName("Move tests")
-public class MoveTest {
+class MoveTest {
 
     private Move move;
 
