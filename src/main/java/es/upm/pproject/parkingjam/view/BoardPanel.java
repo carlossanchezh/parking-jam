@@ -287,7 +287,10 @@ public class BoardPanel extends JPanel {
     //   size 5+       -> truck
     private void drawCar(Graphics2D g, Vehicle vehicle) {
         BoundingBox bounds = boundingBox(vehicle);
-        int minRow = bounds.minRow(), minCol = bounds.minCol(), maxRow = bounds.maxRow(), maxCol = bounds.maxCol();
+        int minRow = bounds.minRow();
+        int minCol = bounds.minCol();
+        int maxRow = bounds.maxRow();
+        int maxCol = bounds.maxCol();
 
         int x = minCol * CELL_SIZE;
         int y = minRow * CELL_SIZE;
@@ -344,51 +347,51 @@ public class BoardPanel extends JPanel {
     }
 
     // Regular passenger car: rounded body, two window bands, four wheels, head/tail lights
-    private void drawNormalCar(Graphics2D g, double L, double T, Color base) {
-        double arc = T;
+    private void drawNormalCar(Graphics2D g, double l, double t, Color base) {
+        double arc = t;
 
-        GradientPaint grad = new GradientPaint(0, 0, base.brighter(), 0, (float) T, base.darker());
+        GradientPaint grad = new GradientPaint(0, 0, base.brighter(), 0, (float) t, base.darker());
         g.setPaint(grad);
-        g.fill(new RoundRectangle2D.Double(0, 0, L, T, arc, arc));
+        g.fill(new RoundRectangle2D.Double(0, 0, l, t, arc, arc));
         g.setPaint(null);
 
         // Windows near each end, leaving a hood/trunk gap in the middle
-        double winW = L * 0.26;
-        double winH = T * 0.62;
-        double winY = (T - winH) / 2;
+        double winW = l * 0.26;
+        double winH = t * 0.62;
+        double winY = (t - winH) / 2;
         g.setColor(WINDOW_COLOR);
-        g.fill(new RoundRectangle2D.Double(L * 0.08, winY, winW, winH, 8, 8));
-        g.fill(new RoundRectangle2D.Double(L - L * 0.08 - winW, winY, winW, winH, 8, 8));
+        g.fill(new RoundRectangle2D.Double(l * 0.08, winY, winW, winH, 8, 8));
+        g.fill(new RoundRectangle2D.Double(l - l * 0.08 - winW, winY, winW, winH, 8, 8));
 
         // Wheels
         g.setColor(WHEEL_COLOR);
-        drawWheelPair(g, L * 0.24, T, L * 0.18, 7);
-        drawWheelPair(g, L * 0.76, T, L * 0.18, 7);
+        drawWheelPair(g, l * 0.24, t, l * 0.18, 7);
+        drawWheelPair(g, l * 0.76, t, l * 0.18, 7);
 
         // Lights at both ends
-        double lightSize = T * 0.22;
+        double lightSize = t * 0.22;
         g.setColor(HEADLIGHT_COLOR);
-        g.fill(new Ellipse2D.Double(L - lightSize - 2, (T - lightSize) / 2, lightSize, lightSize));
+        g.fill(new Ellipse2D.Double(l - lightSize - 2, (t - lightSize) / 2, lightSize, lightSize));
         g.setColor(TAILLIGHT_COLOR);
-        g.fill(new Ellipse2D.Double(2, (T - lightSize) / 2, lightSize, lightSize));
+        g.fill(new Ellipse2D.Double(2, (t - lightSize) / 2, lightSize, lightSize));
 
         // Outline
         g.setColor(base.darker().darker());
         g.setStroke(new BasicStroke(2f));
-        g.draw(new RoundRectangle2D.Double(0, 0, L, T, arc, arc));
+        g.draw(new RoundRectangle2D.Double(0, 0, l, t, arc, arc));
     }
 
     // Formula 1 car: narrow chassis, pointed nose, front/rear wings, exposed wheels and cockpit
-    private void drawF1Car(Graphics2D g, double L, double T, Color base) {
-        double chassisH = T * 0.46;
-        double chassisY = (T - chassisH) / 2;
-        double chassisX0 = L * 0.16;
-        double chassisX1 = L * 0.80;
+    private void drawF1Car(Graphics2D g, double l, double t, Color base) {
+        double chassisH = t * 0.46;
+        double chassisY = (t - chassisH) / 2;
+        double chassisX0 = l * 0.16;
+        double chassisX1 = l * 0.80;
         double chassisArc = chassisH * 0.5;
 
         // Rear wing (tall thin bar near the back)
-        g.setPaint(new GradientPaint(0, 0, base.darker(), 0, (float) T, base.darker().darker()));
-        g.fill(new RoundRectangle2D.Double(0, T * 0.06, L * 0.07, T * 0.88, 3, 3));
+        g.setPaint(new GradientPaint(0, 0, base.darker(), 0, (float) t, base.darker().darker()));
+        g.fill(new RoundRectangle2D.Double(0, t * 0.06, l * 0.07, t * 0.88, 3, 3));
 
         // Main chassis
         GradientPaint chassisGrad = new GradientPaint(0, (float) chassisY, base.brighter(), 0, (float) (chassisY + chassisH), base.darker());
@@ -401,35 +404,35 @@ public class BoardPanel extends JPanel {
         Path2D.Double nose = new Path2D.Double();
         nose.moveTo(chassisX1 - chassisArc * 0.3, chassisY + chassisH * 0.12);
         nose.lineTo(chassisX1 - chassisArc * 0.3, chassisY + chassisH * 0.88);
-        nose.lineTo(L * 0.97, T / 2.0);
+        nose.lineTo(l * 0.97, t / 2.0);
         nose.closePath();
         g.fill(nose);
         g.setPaint(null);
 
         // Front wing (thin wide bar near the nose)
         g.setColor(base.darker());
-        double fwW = L * 0.045;
-        g.fill(new RoundRectangle2D.Double(L - fwW - 1, T * 0.06, fwW, T * 0.88, 2, 2));
+        double fwW = l * 0.045;
+        g.fill(new RoundRectangle2D.Double(l - fwW - 1, t * 0.06, fwW, t * 0.88, 2, 2));
 
         // Cockpit opening
         g.setColor(new Color(20, 20, 22));
         double cockH = chassisH * 0.62;
         double cockW = chassisH * 0.95;
         double cockX = chassisX0 + chassisH * 0.55;
-        g.fill(new Ellipse2D.Double(cockX, T / 2.0 - cockH / 2.0, cockW, cockH));
+        g.fill(new Ellipse2D.Double(cockX, t / 2.0 - cockH / 2.0, cockW, cockH));
 
         // Driver's helmet
         g.setColor(new Color(235, 235, 235));
         double helD = cockH * 0.55;
-        g.fill(new Ellipse2D.Double(cockX + (cockW - helD) / 2.0, T / 2.0 - helD / 2.0, helD, helD));
+        g.fill(new Ellipse2D.Double(cockX + (cockW - helD) / 2.0, t / 2.0 - helD / 2.0, helD, helD));
 
         // Big, partially exposed wheels at each corner
         g.setColor(WHEEL_COLOR);
-        double wheelD = T * 0.5;
-        g.fill(new Ellipse2D.Double(L * 0.22 - wheelD / 2.0, -wheelD / 2.0, wheelD, wheelD));
-        g.fill(new Ellipse2D.Double(L * 0.22 - wheelD / 2.0, T - wheelD / 2.0, wheelD, wheelD));
-        g.fill(new Ellipse2D.Double(L * 0.70 - wheelD / 2.0, -wheelD / 2.0, wheelD, wheelD));
-        g.fill(new Ellipse2D.Double(L * 0.70 - wheelD / 2.0, T - wheelD / 2.0, wheelD, wheelD));
+        double wheelD = t * 0.5;
+        g.fill(new Ellipse2D.Double(l * 0.22 - wheelD / 2.0, -wheelD / 2.0, wheelD, wheelD));
+        g.fill(new Ellipse2D.Double(l * 0.22 - wheelD / 2.0, t - wheelD / 2.0, wheelD, wheelD));
+        g.fill(new Ellipse2D.Double(l * 0.70 - wheelD / 2.0, -wheelD / 2.0, wheelD, wheelD));
+        g.fill(new Ellipse2D.Double(l * 0.70 - wheelD / 2.0, t - wheelD / 2.0, wheelD, wheelD));
 
         // Outline of the chassis
         g.setColor(base.darker().darker());
@@ -438,44 +441,44 @@ public class BoardPanel extends JPanel {
     }
 
     // Van: boxy body, windshield, side windows and a sliding door line
-    private void drawVan(Graphics2D g, double L, double T, Color base) {
-        double arc = T * 0.18;
+    private void drawVan(Graphics2D g, double l, double t, Color base) {
+        double arc = t * 0.18;
 
-        GradientPaint grad = new GradientPaint(0, 0, base.brighter(), 0, (float) T, base.darker());
+        GradientPaint grad = new GradientPaint(0, 0, base.brighter(), 0, (float) t, base.darker());
         g.setPaint(grad);
-        RoundRectangle2D.Double body = new RoundRectangle2D.Double(0, 0, L, T, arc, arc);
+        RoundRectangle2D.Double body = new RoundRectangle2D.Double(0, 0, l, t, arc, arc);
         g.fill(body);
         g.setPaint(null);
 
         // Windshield near the front
-        double wsW = L * 0.16;
-        double wsH = T * 0.6;
-        double wsY = (T - wsH) / 2;
+        double wsW = l * 0.16;
+        double wsH = t * 0.6;
+        double wsY = (t - wsH) / 2;
         g.setColor(WINDOW_COLOR);
-        g.fill(new RoundRectangle2D.Double(L - wsW - L * 0.05, wsY, wsW, wsH, 6, 6));
+        g.fill(new RoundRectangle2D.Double(l - wsW - l * 0.05, wsY, wsW, wsH, 6, 6));
 
         // Side windows for the passenger area
-        double sw = T * 0.32;
-        double swY = (T - sw) / 2;
-        g.fill(new RoundRectangle2D.Double(L * 0.40, swY, sw, sw, 5, 5));
-        g.fill(new RoundRectangle2D.Double(L * 0.56, swY, sw, sw, 5, 5));
+        double sw = t * 0.32;
+        double swY = (t - sw) / 2;
+        g.fill(new RoundRectangle2D.Double(l * 0.40, swY, sw, sw, 5, 5));
+        g.fill(new RoundRectangle2D.Double(l * 0.56, swY, sw, sw, 5, 5));
 
         // Sliding door line separating passenger area from cargo area
         g.setColor(base.darker());
         g.setStroke(new BasicStroke(1.5f));
-        g.draw(new Line2D.Double(L * 0.36, T * 0.08, L * 0.36, T * 0.92));
+        g.draw(new Line2D.Double(l * 0.36, t * 0.08, l * 0.36, t * 0.92));
 
         // Wheels
         g.setColor(WHEEL_COLOR);
-        drawWheelPair(g, L * 0.22, T, L * 0.15, 7);
-        drawWheelPair(g, L * 0.78, T, L * 0.15, 7);
+        drawWheelPair(g, l * 0.22, t, l * 0.15, 7);
+        drawWheelPair(g, l * 0.78, t, l * 0.15, 7);
 
         // Lights
-        double lightSize = T * 0.2;
+        double lightSize = t * 0.2;
         g.setColor(HEADLIGHT_COLOR);
-        g.fill(new Ellipse2D.Double(L - lightSize - 2, (T - lightSize) / 2, lightSize, lightSize));
+        g.fill(new Ellipse2D.Double(l - lightSize - 2, (t - lightSize) / 2, lightSize, lightSize));
         g.setColor(TAILLIGHT_COLOR);
-        g.fill(new Rectangle2D.Double(1, (T - lightSize) / 2, lightSize * 0.6, lightSize));
+        g.fill(new Rectangle2D.Double(1, (t - lightSize) / 2, lightSize * 0.6, lightSize));
 
         // Outline
         g.setColor(base.darker().darker());
@@ -484,27 +487,27 @@ public class BoardPanel extends JPanel {
     }
 
     // Bus: long boxy body with a row of windows and a decorative stripe
-    private void drawBus(Graphics2D g, double L, double T, Color base) {
-        double arc = T * 0.15;
+    private void drawBus(Graphics2D g, double l, double t, Color base) {
+        double arc = t * 0.15;
 
-        GradientPaint grad = new GradientPaint(0, 0, base.brighter(), 0, (float) T, base.darker());
+        GradientPaint grad = new GradientPaint(0, 0, base.brighter(), 0, (float) t, base.darker());
         g.setPaint(grad);
-        RoundRectangle2D.Double body = new RoundRectangle2D.Double(0, 0, L, T, arc, arc);
+        RoundRectangle2D.Double body = new RoundRectangle2D.Double(0, 0, l, t, arc, arc);
         g.fill(body);
         g.setPaint(null);
 
         // Decorative stripe along the side
         g.setColor(new Color(255, 255, 255, 90));
-        g.fill(new Rectangle2D.Double(0, T * 0.62, L, T * 0.08));
+        g.fill(new Rectangle2D.Double(0, t * 0.62, l, t * 0.08));
 
         // Row of evenly spaced passenger windows
         int numWindows = 5;
-        double margin = L * 0.06;
-        double available = L - 2 * margin;
+        double margin = l * 0.06;
+        double available = l - 2 * margin;
         double slot = available / numWindows;
         double winW = slot * 0.68;
-        double winH = T * 0.42;
-        double winY = T * 0.14;
+        double winH = t * 0.42;
+        double winY = t * 0.14;
         g.setColor(WINDOW_COLOR);
         for (int i = 0; i < numWindows; i++) {
             double wx = margin + i * slot + (slot - winW) / 2;
@@ -513,15 +516,15 @@ public class BoardPanel extends JPanel {
 
         // Wheels
         g.setColor(WHEEL_COLOR);
-        drawWheelPair(g, L * 0.22, T, L * 0.11, 8);
-        drawWheelPair(g, L * 0.78, T, L * 0.11, 8);
+        drawWheelPair(g, l * 0.22, t, l * 0.11, 8);
+        drawWheelPair(g, l * 0.78, t, l * 0.11, 8);
 
         // Lights
-        double lightSize = T * 0.18;
+        double lightSize = t * 0.18;
         g.setColor(HEADLIGHT_COLOR);
-        g.fill(new Ellipse2D.Double(L - lightSize - 2, (T - lightSize) / 2, lightSize, lightSize));
+        g.fill(new Ellipse2D.Double(l - lightSize - 2, (t - lightSize) / 2, lightSize, lightSize));
         g.setColor(TAILLIGHT_COLOR);
-        g.fill(new Ellipse2D.Double(2, (T - lightSize) / 2, lightSize, lightSize));
+        g.fill(new Ellipse2D.Double(2, (t - lightSize) / 2, lightSize, lightSize));
 
         // Outline
         g.setColor(base.darker().darker());
@@ -530,15 +533,15 @@ public class BoardPanel extends JPanel {
     }
 
     // Truck: a darker cab at one end plus a cargo box with ridge lines, wheels along the body
-    private void drawTruck(Graphics2D g, double L, double T, Color base) {
-        double arc = T * 0.15;
-        double cabLen = Math.min(T * 1.15, L * 0.32);
-        double cargoLen = L - cabLen;
+    private void drawTruck(Graphics2D g, double l, double t, Color base) {
+        double arc = t * 0.15;
+        double cabLen = Math.min(t * 1.15, l * 0.32);
+        double cargoLen = l - cabLen;
 
         // Cargo box
-        GradientPaint cargoGrad = new GradientPaint(0, 0, base.brighter(), 0, (float) T, base.darker());
+        GradientPaint cargoGrad = new GradientPaint(0, 0, base.brighter(), 0, (float) t, base.darker());
         g.setPaint(cargoGrad);
-        RoundRectangle2D.Double cargo = new RoundRectangle2D.Double(0, 0, cargoLen, T, arc, arc);
+        RoundRectangle2D.Double cargo = new RoundRectangle2D.Double(0, 0, cargoLen, t, arc, arc);
         g.fill(cargo);
         g.setPaint(null);
 
@@ -548,38 +551,38 @@ public class BoardPanel extends JPanel {
         int ridges = Math.max(2, (int) (cargoLen / 18));
         for (int i = 1; i < ridges; i++) {
             double rx = cargoLen * i / ridges;
-            g.draw(new Line2D.Double(rx, T * 0.12, rx, T * 0.88));
+            g.draw(new Line2D.Double(rx, t * 0.12, rx, t * 0.88));
         }
 
         // Cab
         Color cabColor = base.darker();
-        GradientPaint cabGrad = new GradientPaint((float) cargoLen, 0, cabColor.brighter(), (float) cargoLen, (float) T, cabColor.darker());
+        GradientPaint cabGrad = new GradientPaint((float) cargoLen, 0, cabColor.brighter(), (float) cargoLen, (float) t, cabColor.darker());
         g.setPaint(cabGrad);
-        RoundRectangle2D.Double cab = new RoundRectangle2D.Double(cargoLen, 0, cabLen, T, arc, arc);
+        RoundRectangle2D.Double cab = new RoundRectangle2D.Double(cargoLen, 0, cabLen, t, arc, arc);
         g.fill(cab);
         g.setPaint(null);
 
         // Cab window
         double winW = cabLen * 0.55;
-        double winH = T * 0.55;
-        double winY = (T - winH) / 2;
+        double winH = t * 0.55;
+        double winY = (t - winH) / 2;
         g.setColor(WINDOW_COLOR);
         g.fill(new RoundRectangle2D.Double(cargoLen + cabLen * 0.32, winY, winW, winH, 5, 5));
 
         // Wheels spread along the whole length, roughly one pair per cell
         g.setColor(WHEEL_COLOR);
-        int pairCount = Math.max(2, Math.round((float) (L / CELL_SIZE)));
+        int pairCount = Math.max(2, Math.round((float) (l / CELL_SIZE)));
         for (int i = 0; i < pairCount; i++) {
-            double cx = (i + 0.5) * L / pairCount;
-            drawWheelPair(g, cx, T, L * 0.08, 8);
+            double cx = (i + 0.5) * l / pairCount;
+            drawWheelPair(g, cx, t, l * 0.08, 8);
         }
 
         // Lights
-        double lightSize = T * 0.18;
+        double lightSize = t * 0.18;
         g.setColor(HEADLIGHT_COLOR);
-        g.fill(new Ellipse2D.Double(L - lightSize - 2, (T - lightSize) / 2, lightSize, lightSize));
+        g.fill(new Ellipse2D.Double(l - lightSize - 2, (t - lightSize) / 2, lightSize, lightSize));
         g.setColor(TAILLIGHT_COLOR);
-        g.fill(new Ellipse2D.Double(2, (T - lightSize) / 2, lightSize, lightSize));
+        g.fill(new Ellipse2D.Double(2, (t - lightSize) / 2, lightSize, lightSize));
 
         // Outlines
         g.setColor(base.darker().darker());
@@ -589,15 +592,17 @@ public class BoardPanel extends JPanel {
     }
 
     // Draws a pair of wheels (one on the top edge, one on the bottom edge) centered at cx
-    private void drawWheelPair(Graphics2D g, double cx, double T, double wheelLen, double wheelThick) {
+    private void drawWheelPair(Graphics2D g, double cx, double t, double wheelLen, double wheelThick) {
         g.fill(new RoundRectangle2D.Double(cx - wheelLen / 2, -wheelThick / 2, wheelLen, wheelThick, 3, 3));
-        g.fill(new RoundRectangle2D.Double(cx - wheelLen / 2, T - wheelThick / 2, wheelLen, wheelThick, 3, 3));
+        g.fill(new RoundRectangle2D.Double(cx - wheelLen / 2, t - wheelThick / 2, wheelLen, wheelThick, 3, 3));
     }
 
     // Computes the [minRow, minCol, maxRow, maxCol] bounding box occupied by a vehicle
     private BoundingBox boundingBox(Vehicle vehicle) {
-        int minRow = Integer.MAX_VALUE, minCol = Integer.MAX_VALUE;
-        int maxRow = Integer.MIN_VALUE, maxCol = Integer.MIN_VALUE;
+        int minRow = Integer.MAX_VALUE;
+        int minCol = Integer.MAX_VALUE;
+        int maxRow = Integer.MIN_VALUE;
+        int maxCol = Integer.MIN_VALUE;
         for (Position p : vehicle.getPositions()) {
             minRow = Math.min(minRow, p.getX());
             maxRow = Math.max(maxRow, p.getX());

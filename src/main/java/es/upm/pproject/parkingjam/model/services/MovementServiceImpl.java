@@ -93,10 +93,3 @@ public class MovementServiceImpl implements MovementService {
         return newPositions;
     }
 }
-
-
-/*
-1. Buscar el vehículo en el Board.
-2. Comprobar si su orientación permite esa dirección.
-3. Calcular nuevas posiciones y usar CollisionService.
- */
