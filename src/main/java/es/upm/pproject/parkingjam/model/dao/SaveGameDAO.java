@@ -17,6 +17,7 @@ import es.upm.pproject.parkingjam.model.exceptions.BoardValidationException;
 public class SaveGameDAO {
     private static final Logger logger = LoggerFactory.getLogger(SaveGameDAO.class);
 
+    //Saves the curent game into a selected file
     public void saveGame(GameState gameState, Path saveFile) throws SaveGameDAOException{
         if(gameState == null) throw new SaveGameDAOException("Game state cannot be null");
         if(saveFile == null) throw new SaveGameDAOException("Save file cannot be null");
@@ -36,6 +37,7 @@ public class SaveGameDAO {
             throw new SaveGameDAOException("Error saving game", e);
         }
     }
+    //Helper to write the game state in a .txt
     private void writeGameState(GameState gameState, BufferedWriter bw) throws IOException{
         bw.write("CURRENT_LEVEL=" + gameState.getCurrentLevel());
         bw.newLine();
@@ -72,6 +74,7 @@ public class SaveGameDAO {
         }
     }
 
+    //Loads a previously saved game from a selected file
     public GameState loadGame(Path saveFile) throws SaveGameDAOException{
         if(saveFile == null) throw new SaveGameDAOException("Save file cannot be null");
         logger.info("Loading game from {}", saveFile);
@@ -112,6 +115,7 @@ public class SaveGameDAO {
         }        
     }
 
+    //Converts the current board into a char matrix to save it in the .txt
     private char[][] boardToChar(Board board){
         char[][] saveMatrix = new char[board.getRows()][board.getColumns()];
 
@@ -138,6 +142,7 @@ public class SaveGameDAO {
         return saveMatrix;
     }
 
+    //Helper to read a key=value line to extract the value to verify the format correctly
     private String readValue(BufferedReader br, String expectedWord) throws IOException, SaveGameDAOException{
         String line = br.readLine();
         if(line == null) throw new SaveGameDAOException("Missing value for: " + expectedWord);
@@ -146,6 +151,7 @@ public class SaveGameDAO {
         return line.substring(prefix.length());
     }
 
+    //Helper to read the movement history from the saved file
     private List<Move> readMoves(BufferedReader br) throws IOException, SaveGameDAOException{
         List<Move> moves = new ArrayList<>();
         String line;
@@ -169,6 +175,7 @@ public class SaveGameDAO {
         return moves;
     }
 
+    //Helper that reads and validate the board from the saved file
     private Board readBoard(BufferedReader br) throws IOException, SaveGameDAOException{
         String dimensionLine = br.readLine();
         if(dimensionLine == null) throw new SaveGameDAOException("Missing board dimensions");
