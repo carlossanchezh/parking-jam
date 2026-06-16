@@ -201,8 +201,12 @@ public class GameControllerImpl implements GameController {
             loadNextValidLevel(nextLevel, updatedTotal);
         }  catch (LevelNotFoundException e) {
             // If no more levels to load, win game
+            updateView();
             GameDialogs.showVictory(view, updatedTotal);
             logger.info("No more levels to load. Game finished with score: {}", updatedTotal);
+
+            view.dispose();
+            System.exit(0);
         }
     }
 
