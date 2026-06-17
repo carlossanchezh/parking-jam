@@ -53,8 +53,12 @@ public class MainView extends JFrame {
 
 
     //  Methods called by the Controller to update the view
-    public void updateBoard(Board board) {
-        SwingUtilities.invokeLater(() -> boardPanel.setBoard(board));
+   public void updateBoard(Board board) {
+    SwingUtilities.invokeLater(() -> {
+        boardPanel.setBoard(board);
+        pack();
+        setLocationRelativeTo(null);
+    }); 
     }
 
     public void updateStatus(String levelName, int levelScore, int totalScore) {
